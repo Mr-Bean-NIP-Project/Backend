@@ -1,12 +1,11 @@
 import {
   Column,
-  Entity,
-  PrimaryGeneratedColumn,
   CreateDateColumn,
-  UpdateDateColumn,
-  DeleteDateColumn,
+  Entity,
   JoinColumn,
   ManyToOne,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn
 } from 'typeorm';
 import { Supplier } from '../../supplier/entities/supplier.entity';
 
@@ -53,9 +52,6 @@ export class Material {
 
   @UpdateDateColumn()
   updated_at: Date;
-
-  @DeleteDateColumn()
-  deleted_at: Date;
 
   @ManyToOne(() => Supplier, {
     eager: true,
