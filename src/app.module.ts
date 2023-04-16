@@ -6,6 +6,7 @@ import * as Joi from 'joi';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { dataSourceOptions } from '../db/data-source';
 import { SupplierModule } from './supplier/supplier.module';
+import { MaterialModule } from './material/material.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { SupplierModule } from './supplier/supplier.module';
     }),
     TypeOrmModule.forRoot(dataSourceOptions),
     SupplierModule,
+    MaterialModule,
   ],
   controllers: [AppController],
   providers: [AppService],
