@@ -5,7 +5,7 @@ import {
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
-  UpdateDateColumn
+  UpdateDateColumn,
 } from 'typeorm';
 import { Supplier } from '../../supplier/entities/supplier.entity';
 
@@ -53,11 +53,13 @@ export class Material {
   @UpdateDateColumn()
   updated_at: Date;
 
-  @ManyToOne(() => Supplier, {
-    eager: true,
+  @ManyToOne(() => Supplier, (supplier) => supplier.id, {
     onDelete: 'RESTRICT',
     onUpdate: 'CASCADE',
   })
-  @JoinColumn()
+  @JoinColumn({ name: 'supplier_id' })
   supplier: Supplier;
+
+  @Column()
+  supplier_id: number;
 }

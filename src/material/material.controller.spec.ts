@@ -86,12 +86,12 @@ describe('MaterialController', () => {
       supplier_id: createdSupplier.id,
     };
 
-    const createdMaterial = await controller.create(materialDto1);
+    const { supplier, ...createdMaterial} = await controller.create(materialDto1);
     const material = await controller.findOne(
       JSON.stringify(createdMaterial.id),
     );
 
-    expect(material).toStrictEqual(createdMaterial);
+    expect(material).toEqual(createdMaterial);
   });
 
   it('should update materials successfully', async () => {

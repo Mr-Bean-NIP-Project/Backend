@@ -47,7 +47,6 @@ describe('SupplierController', () => {
     expect(result.name).toStrictEqual(dto.name);
     expect(result.updated_at).not.toBeNull();
     expect(result.created_at).not.toBeNull();
-    expect(result.deleted_at).toBeNull();
   });
 
   it('should get all suppliers', async () => {

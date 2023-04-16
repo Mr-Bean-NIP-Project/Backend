@@ -38,24 +38,24 @@ describe('MaterialService', () => {
 
   it('should create 1 material', async () => {
     const createdSupplier = await supplierService.create({ name: 'NTUC' });
-    const createdMaterial = await materialService.create({
+    const { supplier, ...createdMaterial } = await materialService.create({
       name: 'mat1',
       energy: '10',
       supplier_id: createdSupplier.id,
     });
     const materialInDb = await materialService.findOne(createdMaterial.id);
 
-    expect(createdMaterial).toStrictEqual(materialInDb);
+    expect(createdMaterial as Material).toEqual(materialInDb);
   });
 
   it('should get all materials', async () => {
     const createdSupplier = await supplierService.create({ name: 'NTUC' });
-    const createdMaterial1 = await materialService.create({
+    const { supplier: s1, ...createdMaterial1 } = await materialService.create({
       name: 'mat1',
       energy: '10',
       supplier_id: createdSupplier.id,
     });
-    const createdMaterial2 = await materialService.create({
+    const { supplier: s2, ...createdMaterial2 } = await materialService.create({
       name: 'mat2',
       energy: '20',
       supplier_id: createdSupplier.id,
@@ -68,16 +68,34 @@ describe('MaterialService', () => {
   });
 
   it('update material successfully', async () => {
-    const createdSupplier = await supplierService.create({ name: 'NTUC' });
+    const createdSupplier1 = await supplierService.create({ name: 'NTUC1' });
+    const createdSupplier2 = await supplierService.create({ name: 'NTUC2' });
+
+    const name = 'mat1';
+    const energy = '10';
     const createdMaterial = await materialService.create({
-      name: 'mat1',
-      energy: '10',
-      supplier_id: createdSupplier.id,
+      name,
+      energy,
+      supplier_id: createdSupplier1.id,
     });
-    await materialService.update(createdMaterial.id, { dietary_fibre: '30' });
+
+    expect(createdMaterial.name).toBe(name);
+    expect(createdMaterial.energy).toBe(energy);
+    expect(createdMaterial.dietary_fibre).toBe('0');
+    expect(createdMaterial.supplier_id).toBe(createdSupplier1.id);
+
+    const newDietaryFibre = '30';
+
+    await materialService.update(createdMaterial.id, {
+      dietary_fibre: newDietaryFibre,
+      supplier_id: createdSupplier2.id,
+    });
 
     const materialInDb = await materialService.findOne(createdMaterial.id);
-    expect(materialInDb.dietary_fibre).toBe('30');
+    expect(materialInDb.name).toBe(name);
+    expect(materialInDb.energy).toBe(energy);
+    expect(materialInDb.dietary_fibre).toBe(newDietaryFibre);
+    expect(materialInDb.supplier_id).toBe(createdSupplier2.id);
   });
 
   it('should fail to update non-existent material', async () => {
