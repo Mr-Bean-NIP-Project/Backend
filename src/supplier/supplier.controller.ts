@@ -13,22 +13,22 @@ export class SupplierController {
   }
 
   @Get()
-  findAll() {
-    return this.supplierService.findAll();
+  async findAll() {
+    return await this.supplierService.findAll();
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.supplierService.findOne(+id);
+  async findOne(@Param('id') id: string) {
+    return await this.supplierService.findOne(+id);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateSupplierDto: UpdateSupplierDto) {
-    return this.supplierService.update(+id, updateSupplierDto);
+  async update(@Param('id') id: string, @Body() updateSupplierDto: UpdateSupplierDto) {
+    return await this.supplierService.update(+id, updateSupplierDto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.supplierService.remove(+id);
+  async remove(@Param('id') id: string) {
+    return await this.supplierService.remove(+id);
   }
 }

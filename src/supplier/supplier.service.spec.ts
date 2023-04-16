@@ -1,9 +1,9 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { SupplierService } from './supplier.service';
-import { Supplier } from './entities/supplier.entity';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import { NotFoundException } from '@nestjs/common';
+import { Test, TestingModule } from '@nestjs/testing';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { DataSourceOptions } from 'typeorm';
+import { Supplier } from './entities/supplier.entity';
+import { SupplierService } from './supplier.service';
 
 describe('SupplierService', () => {
   let service: SupplierService;
@@ -15,8 +15,8 @@ describe('SupplierService', () => {
       dropSchema: true,
       entities: [Supplier],
       synchronize: true,
-    }
-    
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       imports: [
         TypeOrmModule.forRoot(dataSourceOptions),
@@ -24,7 +24,7 @@ describe('SupplierService', () => {
       ],
       providers: [SupplierService],
     }).compile();
-    
+
     service = module.get<SupplierService>(SupplierService);
   });
 

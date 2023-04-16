@@ -1,9 +1,9 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { CreateSupplierDto } from './dto/create-supplier.dto';
 import { UpdateSupplierDto } from './dto/update-supplier.dto';
-import { InjectRepository } from '@nestjs/typeorm';
 import { Supplier } from './entities/supplier.entity';
-import { Repository } from 'typeorm';
 
 @Injectable()
 export class SupplierService {
