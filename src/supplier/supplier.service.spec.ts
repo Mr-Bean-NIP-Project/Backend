@@ -1,49 +1,53 @@
-import { NotFoundException } from '@nestjs/common';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { DataSourceOptions } from 'typeorm';
 import { Supplier } from './entities/supplier.entity';
 import { SupplierService } from './supplier.service';
+import { Material } from '../material/entities/material.entity';
+import { MaterialService } from '../material/material.service';
 
 describe('SupplierService', () => {
-  let service: SupplierService;
+  let supplierService: SupplierService;
+  let materialService: MaterialService;
 
   beforeEach(async () => {
     const dataSourceOptions: DataSourceOptions = {
       type: 'sqlite',
       database: ':memory:',
       dropSchema: true,
-      entities: [Supplier],
+      entities: [Supplier, Material],
       synchronize: true,
     };
 
     const module: TestingModule = await Test.createTestingModule({
       imports: [
         TypeOrmModule.forRoot(dataSourceOptions),
-        TypeOrmModule.forFeature([Supplier]),
+        TypeOrmModule.forFeature([Supplier, Material]),
       ],
-      providers: [SupplierService],
+      providers: [SupplierService, MaterialService],
     }).compile();
 
-    service = module.get<SupplierService>(SupplierService);
+    supplierService = module.get<SupplierService>(SupplierService);
+    materialService = module.get<MaterialService>(MaterialService);
   });
 
   it('should be defined', () => {
-    expect(service).toBeDefined();
+    expect(supplierService).toBeDefined();
   });
 
   it('should create 1 supplier', async () => {
-    const createdSupplier = await service.create({ name: 'NTUC' });
-    const supplierInDB = await service.findOne(createdSupplier.id);
+    const createdSupplier = await supplierService.create({ name: 'NTUC' });
+    const supplierInDB = await supplierService.findOne(createdSupplier.id);
 
     expect(supplierInDB).toStrictEqual(createdSupplier);
   });
 
   it('should get all suppliers', async () => {
-    const createdSupplier1 = await service.create({ name: 'NTUC' });
-    const createdSupplier2 = await service.create({ name: 'NTUC2' });
+    const createdSupplier1 = await supplierService.create({ name: 'NTUC' });
+    const createdSupplier2 = await supplierService.create({ name: 'NTUC2' });
 
-    const suppliers = await service.findAll();
+    const suppliers = await supplierService.findAll();
 
     expect(suppliers).toContainEqual(createdSupplier1);
     expect(suppliers).toContainEqual(createdSupplier2);
@@ -52,9 +56,9 @@ describe('SupplierService', () => {
 
   it('should update supplier successfully', async () => {
     const newName = 'NTUC2';
-    const createdSupplier = await service.create({ name: 'NTUC' });
-    await service.update(createdSupplier.id, { name: newName });
-    const supplierInDB = await service.findOne(createdSupplier.id);
+    const createdSupplier = await supplierService.create({ name: 'NTUC' });
+    await supplierService.update(createdSupplier.id, { name: newName });
+    const supplierInDB = await supplierService.findOne(createdSupplier.id);
 
     const { name: createdName, ...createdSupplierOtherFields } =
       createdSupplier;
@@ -67,25 +71,39 @@ describe('SupplierService', () => {
 
   it('should fail to update non-existent supplier', async () => {
     const t = async () => {
-      return await service.update(1, { name: 'NTUC2' });
+      return await supplierService.update(1, { name: 'NTUC2' });
     };
 
     await expect(t).rejects.toThrowError(NotFoundException);
   });
 
   it('should delete supplier successfully', async () => {
-    const createdSupplier = await service.create({ name: 'NTUC' });
-    await service.remove(createdSupplier.id);
-    const supplierInDB = await service.findOne(createdSupplier.id);
+    const createdSupplier = await supplierService.create({ name: 'NTUC' });
+    await supplierService.remove(createdSupplier.id);
+    const supplierInDB = await supplierService.findOne(createdSupplier.id);
 
     expect(supplierInDB).toBeNull();
   });
 
   it('should fail to delete non-existent supplier', async () => {
     const t = async () => {
-      return await service.remove(1);
+      return await supplierService.remove(1);
     };
 
     await expect(t).rejects.toThrowError(NotFoundException);
+  });
+
+  it('should fail to delete supplier with existing materials', async () => {
+    const t = async () => {
+      const createdSupplier = await supplierService.create({ name: 'NTUC' });
+      await materialService.create({
+        name: 'mat1',
+        energy: '10',
+        supplier_id: createdSupplier.id,
+      });
+      return await supplierService.remove(createdSupplier.id);
+    };
+
+    await expect(t).rejects.toThrowError(BadRequestException);
   });
 });

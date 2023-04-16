@@ -1,16 +1,22 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { CreateMaterialDto } from './dto/create-material.dto';
-import { UpdateMaterialDto } from './dto/update-material.dto';
+import {
+  Inject,
+  Injectable,
+  NotFoundException,
+  forwardRef,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Material } from './entities/material.entity';
 import { Repository } from 'typeorm';
 import { SupplierService } from '../supplier/supplier.service';
+import { CreateMaterialDto } from './dto/create-material.dto';
+import { UpdateMaterialDto } from './dto/update-material.dto';
+import { Material } from './entities/material.entity';
 
 @Injectable()
 export class MaterialService {
   constructor(
     @InjectRepository(Material)
     private materialRepository: Repository<Material>,
+    @Inject(forwardRef(() => SupplierService))
     private supplierService: SupplierService,
   ) {}
 
@@ -59,5 +65,15 @@ export class MaterialService {
       throw new NotFoundException('Material not found!');
     }
     return this.materialRepository.remove(material);
+  }
+
+  async findTaggedSupplier(supplier_id: number) {
+    return await this.materialRepository.find({
+      where: {
+        supplier: {
+          id: supplier_id,
+        },
+      },
+    });
   }
 }

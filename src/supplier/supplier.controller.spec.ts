@@ -6,6 +6,8 @@ import { SupplierController } from './supplier.controller';
 import { SupplierService } from './supplier.service';
 import { CreateSupplierDto } from './dto/create-supplier.dto';
 import { NotFoundException } from '@nestjs/common';
+import { Material } from '../material/entities/material.entity';
+import { MaterialModule } from '../material/material.module';
 
 describe('SupplierController', () => {
   let controller: SupplierController;
@@ -15,14 +17,15 @@ describe('SupplierController', () => {
       type: 'sqlite',
       database: ':memory:',
       dropSchema: true,
-      entities: [Supplier],
+      entities: [Supplier, Material],
       synchronize: true,
     };
 
     const module: TestingModule = await Test.createTestingModule({
       imports: [
         TypeOrmModule.forRoot(dataSourceOptions),
-        TypeOrmModule.forFeature([Supplier]),
+        TypeOrmModule.forFeature([Supplier, Material]),
+        MaterialModule
       ],
       controllers: [SupplierController],
       providers: [SupplierService],
