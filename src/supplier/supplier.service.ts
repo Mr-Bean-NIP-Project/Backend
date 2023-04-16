@@ -28,7 +28,7 @@ export class SupplierService {
   async update(id: number, updateSupplierDto: UpdateSupplierDto) {
     const supplier = await this.findOne(id);
     if (!supplier) {
-      throw new NotFoundException("Supplier not found!");
+      throw new NotFoundException('Supplier not found!');
     }
     return this.supplierRepository.save({ ...supplier, ...updateSupplierDto });
   }
@@ -36,7 +36,7 @@ export class SupplierService {
   async remove(id: number) {
     const supplier = await this.findOne(id);
     if (!supplier) {
-      throw new NotFoundException("Supplier not found!");
+      throw new NotFoundException('Supplier not found!');
     }
     return this.supplierRepository.softRemove(supplier);
   }
