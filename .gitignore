@@ -4,6 +4,8 @@
 
 **/*.env
 
+**/*.sqlite
+
 # Logs
 logs
 *.log
