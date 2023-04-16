@@ -57,7 +57,7 @@ export class Material {
   @DeleteDateColumn()
   deleted_at: Date;
 
-  @ManyToOne(() => Supplier, { eager: true })
+  @ManyToOne(() => Supplier, { eager: true, onDelete: 'RESTRICT' })
   @JoinColumn()
   supplier: Supplier;
 }

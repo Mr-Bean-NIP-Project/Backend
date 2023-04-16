@@ -22,7 +22,7 @@ export class MaterialService {
       throw new NotFoundException('Supplier not found!');
     }
     const { supplier_id, ...dao } = createMaterialDto;
-    const newMaterial = this.materialRepository.create({ ...dao, supplier  });
+    const newMaterial = this.materialRepository.create({ ...dao, supplier });
     return await this.materialRepository.save(newMaterial);
   }
 
@@ -58,6 +58,6 @@ export class MaterialService {
     if (!material) {
       throw new NotFoundException('Material not found!');
     }
-    return this.materialRepository.softRemove(material);
+    return this.materialRepository.remove(material);
   }
 }

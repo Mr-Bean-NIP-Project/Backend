@@ -38,6 +38,6 @@ export class SupplierService {
     if (!supplier) {
       throw new NotFoundException('Supplier not found!');
     }
-    return this.supplierRepository.softRemove(supplier);
+    return this.supplierRepository.remove(supplier);
   }
 }
