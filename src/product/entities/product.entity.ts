@@ -43,27 +43,12 @@ export class Product {
   @UpdateDateColumn()
   updated_at: Date;
 
-  @OneToMany(() => Product, (product) => product.id, {
-    onDelete: 'CASCADE',
+  @ManyToMany(() => Product, (product) => product.id, {
+    onDelete: 'RESTRICT',
     onUpdate: 'CASCADE',
   })
-  @JoinColumn({ name: 'sub_product_ids', referencedColumnName: 'id' })
+  @JoinTable({ joinColumn: { name: 'product_id_1' } })
   sub_products: Product[];
-
-  @Column('simple-array', {
-    array: true,
-    transformer: {
-      to(value) {
-        // do nothing, lave it to typeorm
-        return value;
-      },
-      from(value) {
-        // cast from string[] to number[]
-        return value.map((val) => +val);
-      },
-    },
-  })
-  sub_product_ids: number[];
 
   @ManyToMany(() => Material, (material) => material.id, {
     onDelete: 'CASCADE',
@@ -71,19 +56,4 @@ export class Product {
   })
   @JoinTable()
   materials: Material[];
-
-  @Column('simple-array', {
-    array: true,
-    transformer: {
-      to(value) {
-        // do nothing, lave it to typeorm
-        return value;
-      },
-      from(value) {
-        // cast from string[] to number[]
-        return value.map((val) => +val);
-      },
-    },
-  })
-  material_ids: number[];
 }

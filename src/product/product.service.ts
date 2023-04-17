@@ -60,11 +60,22 @@ export class ProductService {
   }
 
   async findAll() {
-    return await this.productRepository.find();
+    return await this.productRepository.find({
+      relations: {
+        sub_products: true,
+        materials: true,
+      },
+    });
   }
 
   async findOne(id: number) {
-    return await this.productRepository.findOneBy({ id });
+    return await this.productRepository.findOne({
+      relations: {
+        sub_products: true,
+        materials: true,
+      },
+      where: { id },
+    });
   }
 
   async update(id: number, updateProductDto: UpdateProductDto) {
@@ -72,8 +83,15 @@ export class ProductService {
     if (!product) {
       throw new NotFoundException('Product not found!');
     }
+    const materialIds = updateProductDto.material_ids;
+    const mappedMaterials = await Promise.all(
+      materialIds.map(async (mat) => {
+        return await this.materialService.findOne(mat);
+      }),
+    );
     const missingMaterialIds = await this.getMissingMaterialIds(
-      updateProductDto.material_ids,
+      materialIds,
+      mappedMaterials,
     );
     if (missingMaterialIds.length > 0) {
       throw new BadRequestException(
@@ -81,8 +99,15 @@ export class ProductService {
       );
     }
 
+    const subProductIds = updateProductDto.sub_product_ids;
+    const mappedSubProducts = await Promise.all(
+      subProductIds.map(async (mat) => {
+        return await this.findOne(mat);
+      }),
+    );
     const missingProductIds = await this.getMissingProductIds(
-      updateProductDto.sub_product_ids,
+      subProductIds,
+      mappedSubProducts,
     );
     if (missingProductIds.length > 0) {
       throw new BadRequestException(
@@ -93,6 +118,8 @@ export class ProductService {
     return await this.productRepository.save({
       ...product,
       ...updateProductDto,
+      materials: mappedMaterials,
+      sub_products: mappedSubProducts,
     });
   }
 
@@ -101,12 +128,16 @@ export class ProductService {
     if (!product) {
       throw new NotFoundException('Product not found!');
     }
-    // before we delete, we need to check if any product references this as a sub product
-    const parentProducts = await this.productRepository
-      .createQueryBuilder()
-      .where(`sub_product_ids LIKE :id`, { id: `%${id}%` })
-      .getMany();
-
+    const parentProducts = await this.productRepository.find({
+      relations: {
+        sub_products: true,
+      },
+      where: {
+        sub_products: {
+          id,
+        },
+      },
+    });
     if (parentProducts.length > 0) {
       throw new BadRequestException(
         `Please remove products that references this with ID(s): ${parentProducts
