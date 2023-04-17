@@ -13,9 +13,6 @@ describe('ProductController', () => {
   });
 
   beforeEach(async () => {
-    jest.mock('typeorm-transactional', () => ({
-      Transactional: () => jest.fn(),
-    }));
     const module: TestingModule = await Test.createTestingModule({
       imports: [...TYPEORM_TEST_IMPORTS(), MaterialModule],
       controllers: [ProductController],
