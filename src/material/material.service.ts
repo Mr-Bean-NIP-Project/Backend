@@ -56,7 +56,7 @@ export class MaterialService {
     }
 
     const { supplier_id, ...dao } = updateMaterialDto;
-    return this.materialRepository.save({ ...material, ...dao, supplier_id });
+    return this.materialRepository.save({ ...material, ...dao, supplier });
   }
 
   async remove(id: number) {

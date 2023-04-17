@@ -56,10 +56,8 @@ export class Material {
   @ManyToOne(() => Supplier, (supplier) => supplier.id, {
     onDelete: 'RESTRICT',
     onUpdate: 'CASCADE',
+    eager: true
   })
-  @JoinColumn({ name: 'supplier_id' })
+  @JoinColumn()
   supplier: Supplier;
-
-  @Column()
-  supplier_id: number;
 }
