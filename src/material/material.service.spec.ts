@@ -2,6 +2,8 @@ import { NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { DataSourceOptions } from 'typeorm';
+import { MaterialProduct } from '../product/entities/material_product.entity';
+import { Product } from '../product/entities/product.entity';
 import { Supplier } from '../supplier/entities/supplier.entity';
 import { SupplierService } from '../supplier/supplier.service';
 import { Material } from './entities/material.entity';
@@ -16,14 +18,19 @@ describe('MaterialService', () => {
       type: 'sqlite',
       database: ':memory:',
       dropSchema: true,
-      entities: [Material, Supplier],
+      entities: [Material, Supplier, MaterialProduct, Product],
       synchronize: true,
     };
 
     const module: TestingModule = await Test.createTestingModule({
       imports: [
         TypeOrmModule.forRoot(dataSourceOptions),
-        TypeOrmModule.forFeature([Material, Supplier]),
+        TypeOrmModule.forFeature([
+          Material,
+          Supplier,
+          MaterialProduct,
+          Product,
+        ]),
       ],
       providers: [MaterialService, SupplierService],
     }).compile();
@@ -38,7 +45,7 @@ describe('MaterialService', () => {
 
   it('should create 1 material', async () => {
     const createdSupplier = await supplierService.create({ name: 'NTUC' });
-    const { supplier, ...createdMaterial } = await materialService.create({
+    const createdMaterial = await materialService.create({
       name: 'mat1',
       energy: '10',
       supplier_id: createdSupplier.id,
@@ -50,12 +57,12 @@ describe('MaterialService', () => {
 
   it('should get all materials', async () => {
     const createdSupplier = await supplierService.create({ name: 'NTUC' });
-    const { supplier: s1, ...createdMaterial1 } = await materialService.create({
+    const createdMaterial1 = await materialService.create({
       name: 'mat1',
       energy: '10',
       supplier_id: createdSupplier.id,
     });
-    const { supplier: s2, ...createdMaterial2 } = await materialService.create({
+    const createdMaterial2 = await materialService.create({
       name: 'mat2',
       energy: '20',
       supplier_id: createdSupplier.id,
@@ -82,7 +89,7 @@ describe('MaterialService', () => {
     expect(createdMaterial.name).toBe(name);
     expect(createdMaterial.energy).toBe(energy);
     expect(createdMaterial.dietary_fibre).toBe('0');
-    expect(createdMaterial.supplier_id).toBe(createdSupplier1.id);
+    expect(createdMaterial.supplier).toStrictEqual(createdSupplier1);
 
     const newDietaryFibre = '30';
 
@@ -95,7 +102,7 @@ describe('MaterialService', () => {
     expect(materialInDb.name).toBe(name);
     expect(materialInDb.energy).toBe(energy);
     expect(materialInDb.dietary_fibre).toBe(newDietaryFibre);
-    expect(materialInDb.supplier_id).toBe(createdSupplier2.id);
+    expect(materialInDb.supplier).toStrictEqual(createdSupplier2);
   });
 
   it('should fail to update non-existent material', async () => {

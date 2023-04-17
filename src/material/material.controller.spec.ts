@@ -1,6 +1,9 @@
+import { NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { DataSourceOptions } from 'typeorm';
+import { MaterialProduct } from '../product/entities/material_product.entity';
+import { Product } from '../product/entities/product.entity';
 import { CreateSupplierDto } from '../supplier/dto/create-supplier.dto';
 import { Supplier } from '../supplier/entities/supplier.entity';
 import { SupplierService } from '../supplier/supplier.service';
@@ -8,7 +11,6 @@ import { CreateMaterialDto } from './dto/create-material.dto';
 import { Material } from './entities/material.entity';
 import { MaterialController } from './material.controller';
 import { MaterialService } from './material.service';
-import { NotFoundException } from '@nestjs/common';
 
 describe('MaterialController', () => {
   let controller: MaterialController;
@@ -19,14 +21,19 @@ describe('MaterialController', () => {
       type: 'sqlite',
       database: ':memory:',
       dropSchema: true,
-      entities: [Material, Supplier],
+      entities: [Material, Supplier, MaterialProduct, Product],
       synchronize: true,
     };
 
     const module: TestingModule = await Test.createTestingModule({
       imports: [
         TypeOrmModule.forRoot(dataSourceOptions),
-        TypeOrmModule.forFeature([Material, Supplier]),
+        TypeOrmModule.forFeature([
+          Material,
+          Supplier,
+          MaterialProduct,
+          Product,
+        ]),
       ],
       controllers: [MaterialController],
       providers: [MaterialService, SupplierService],
@@ -76,7 +83,7 @@ describe('MaterialController', () => {
     expect(materials).toHaveLength(2);
   });
 
-  it('should get one materials', async () => {
+  it('should get one material', async () => {
     const supplierDto: CreateSupplierDto = {
       name: 'sup1',
     };
@@ -86,7 +93,7 @@ describe('MaterialController', () => {
       supplier_id: createdSupplier.id,
     };
 
-    const { supplier, ...createdMaterial} = await controller.create(materialDto1);
+    const createdMaterial = await controller.create(materialDto1);
     const material = await controller.findOne(
       JSON.stringify(createdMaterial.id),
     );
@@ -124,7 +131,6 @@ describe('MaterialController', () => {
     };
 
     await expect(t).rejects.toThrowError(NotFoundException);
-
   });
 
   it('should delete materials successfully', async () => {
@@ -151,8 +157,7 @@ describe('MaterialController', () => {
     const t = async () => {
       return await controller.remove(JSON.stringify(1));
     };
-    
-    await expect(t).rejects.toThrowError(NotFoundException);
 
+    await expect(t).rejects.toThrowError(NotFoundException);
   });
 });
