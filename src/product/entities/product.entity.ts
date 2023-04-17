@@ -11,6 +11,7 @@ import {
 } from 'typeorm';
 import { Material } from '../../material/entities/material.entity';
 import { Transform } from 'class-transformer';
+import { MaterialProduct } from './material_product.entity';
 
 export enum SERVING_UNIT {
   G = 'g',
@@ -50,10 +51,7 @@ export class Product {
   @JoinTable({ joinColumn: { name: 'product_id_1' } })
   sub_products: Product[];
 
-  @ManyToMany(() => Material, (material) => material.id, {
-    onDelete: 'CASCADE',
-    onUpdate: 'CASCADE',
-  })
-  @JoinTable()
-  materials: Material[];
+  @OneToMany(() => MaterialProduct, (mp) => mp.product)
+  @JoinColumn({ name: 'product_id' })
+  material_product: MaterialProduct[];
 }

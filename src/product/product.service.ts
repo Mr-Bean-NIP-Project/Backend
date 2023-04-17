@@ -10,12 +10,15 @@ import { UpdateProductDto } from './dto/update-product.dto';
 import { Product } from './entities/product.entity';
 import { MaterialService } from '../material/material.service';
 import { Material } from '../material/entities/material.entity';
+import { MaterialProduct } from './entities/material_product.entity';
 
 @Injectable()
 export class ProductService {
   constructor(
     @InjectRepository(Product)
     private readonly productRepository: Repository<Product>,
+    @InjectRepository(MaterialProduct)
+    private readonly materialProductRepository: Repository<MaterialProduct>,
     private readonly materialService: MaterialService,
   ) {}
 
@@ -52,18 +55,28 @@ export class ProductService {
         `Missing Products with ID(s): ${missingProductIds.join(',')}`,
       );
     }
-    return await this.productRepository.save({
+    const product = await this.productRepository.save({
       ...createProductDto,
       materials: mappedMaterials,
       sub_products: mappedSubProducts,
     });
+
+    for (const material of mappedMaterials) {
+      await this.materialProductRepository.save({
+        material,
+        product,
+        material_quantity: '1',
+      });
+    }
+
+    return product;
   }
 
   async findAll() {
     return await this.productRepository.find({
       relations: {
         sub_products: true,
-        materials: true,
+        material_product: true,
       },
     });
   }
@@ -72,7 +85,7 @@ export class ProductService {
     return await this.productRepository.findOne({
       relations: {
         sub_products: true,
-        materials: true,
+        material_product: true,
       },
       where: { id },
     });

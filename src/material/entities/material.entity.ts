@@ -4,10 +4,13 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { Product } from '../../product/entities/product.entity';
 import { Supplier } from '../../supplier/entities/supplier.entity';
+import { MaterialProduct } from '../../product/entities/material_product.entity';
 
 @Entity()
 export class Material {
@@ -56,8 +59,12 @@ export class Material {
   @ManyToOne(() => Supplier, (supplier) => supplier.id, {
     onDelete: 'RESTRICT',
     onUpdate: 'CASCADE',
-    eager: true
+    eager: true,
   })
   @JoinColumn()
   supplier: Supplier;
+
+  @OneToMany(() => MaterialProduct, (mp) => mp.material)
+  @JoinColumn({ name: 'material_id' })
+  materialProduct: MaterialProduct[];
 }
