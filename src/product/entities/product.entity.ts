@@ -7,10 +7,9 @@ import {
   ManyToMany,
   OneToMany,
   PrimaryGeneratedColumn,
+  Unique,
   UpdateDateColumn,
 } from 'typeorm';
-import { Material } from '../../material/entities/material.entity';
-import { Transform } from 'class-transformer';
 import { MaterialProduct } from './material_product.entity';
 
 export enum SERVING_UNIT {
@@ -19,6 +18,7 @@ export enum SERVING_UNIT {
 }
 
 @Entity()
+@Unique(['name'])
 export class Product {
   @PrimaryGeneratedColumn()
   id: number;

@@ -6,13 +6,14 @@ import {
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
-  UpdateDateColumn,
+  Unique,
+  UpdateDateColumn
 } from 'typeorm';
-import { Product } from '../../product/entities/product.entity';
-import { Supplier } from '../../supplier/entities/supplier.entity';
 import { MaterialProduct } from '../../product/entities/material_product.entity';
+import { Supplier } from '../../supplier/entities/supplier.entity';
 
 @Entity()
+@Unique(['name'])
 export class Material {
   @PrimaryGeneratedColumn()
   id: number;
