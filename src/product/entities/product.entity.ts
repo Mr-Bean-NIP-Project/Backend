@@ -44,10 +44,10 @@ export class Product {
   updated_at: Date;
 
   @OneToMany(() => Product, (product) => product.id, {
-    onDelete: 'RESTRICT',
+    onDelete: 'CASCADE',
     onUpdate: 'CASCADE',
   })
-  @JoinColumn()
+  @JoinColumn({ name: 'sub_product_ids', referencedColumnName: 'id' })
   sub_products: Product[];
 
   @Column('simple-array', {
@@ -59,14 +59,14 @@ export class Product {
       },
       from(value) {
         // cast from string[] to number[]
-        return value.map(val => +val);
+        return value.map((val) => +val);
       },
     },
   })
   sub_product_ids: number[];
 
   @ManyToMany(() => Material, (material) => material.id, {
-    onDelete: 'RESTRICT',
+    onDelete: 'CASCADE',
     onUpdate: 'CASCADE',
   })
   @JoinTable()
@@ -81,7 +81,7 @@ export class Product {
       },
       from(value) {
         // cast from string[] to number[]
-        return value.map(val => +val);
+        return value.map((val) => +val);
       },
     },
   })

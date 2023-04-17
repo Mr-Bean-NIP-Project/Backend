@@ -26,7 +26,10 @@ export class ProductService {
         return await this.materialService.findOne(mat);
       }),
     );
-    const missingMaterialIds = await this.getMissingMaterialIds(materialIds, mappedMaterials);
+    const missingMaterialIds = await this.getMissingMaterialIds(
+      materialIds,
+      mappedMaterials,
+    );
     if (missingMaterialIds.length > 0) {
       throw new BadRequestException(
         `Missing Materials with ID(s): ${missingMaterialIds.join(',')}`,
@@ -39,7 +42,10 @@ export class ProductService {
         return await this.findOne(mat);
       }),
     );
-    const missingProductIds = await this.getMissingProductIds(subProductIds, mappedSubProducts);
+    const missingProductIds = await this.getMissingProductIds(
+      subProductIds,
+      mappedSubProducts,
+    );
 
     if (missingProductIds.length > 0) {
       throw new BadRequestException(
@@ -66,14 +72,18 @@ export class ProductService {
     if (!product) {
       throw new NotFoundException('Product not found!');
     }
-    const missingMaterialIds = await this.getMissingMaterialIds(updateProductDto.material_ids);
+    const missingMaterialIds = await this.getMissingMaterialIds(
+      updateProductDto.material_ids,
+    );
     if (missingMaterialIds.length > 0) {
       throw new BadRequestException(
         `Missing Materials with ID(s): ${missingMaterialIds.join(',')}`,
       );
     }
 
-    const missingProductIds = await this.getMissingProductIds(updateProductDto.sub_product_ids);
+    const missingProductIds = await this.getMissingProductIds(
+      updateProductDto.sub_product_ids,
+    );
     if (missingProductIds.length > 0) {
       throw new BadRequestException(
         `Missing Products with ID(s): ${missingProductIds.join(',')}`,
@@ -91,10 +101,26 @@ export class ProductService {
     if (!product) {
       throw new NotFoundException('Product not found!');
     }
+    // before we delete, we need to check if any product references this as a sub product
+    const parentProducts = await this.productRepository
+      .createQueryBuilder()
+      .where(`sub_product_ids LIKE :id`, { id: `%${id}%` })
+      .getMany();
+
+    if (parentProducts.length > 0) {
+      throw new BadRequestException(
+        `Please remove products that references this with ID(s): ${parentProducts
+          .map((p) => p.id)
+          .join(',')}`,
+      );
+    }
     return await this.productRepository.remove(product);
   }
 
-  async getMissingMaterialIds(materialIds: number[], mappedMaterials?: Material[]): Promise<number[]> {
+  async getMissingMaterialIds(
+    materialIds: number[],
+    mappedMaterials?: Material[],
+  ): Promise<number[]> {
     if (!materialIds || materialIds.length == 0) return [];
     if (!mappedMaterials) {
       mappedMaterials = await Promise.all(
@@ -111,12 +137,15 @@ export class ProductService {
       .map((mat) => mat[1]) // gives us the indexes
       .map((index) => materialIds[index as number]);
 
-      return missingMaterialIds;
+    return missingMaterialIds;
   }
 
-  async getMissingProductIds(subProductIds: number[], mappedSubProducts?: Product[]): Promise<number[]> {
+  async getMissingProductIds(
+    subProductIds: number[],
+    mappedSubProducts?: Product[],
+  ): Promise<number[]> {
     if (!subProductIds || subProductIds.length == 0) return [];
-    if (!mappedSubProducts) { 
+    if (!mappedSubProducts) {
       mappedSubProducts = await Promise.all(
         subProductIds.map(async (mat) => {
           return await this.findOne(mat);
