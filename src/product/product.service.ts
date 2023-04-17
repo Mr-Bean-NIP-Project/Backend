@@ -63,7 +63,8 @@ export class ProductService {
       );
     }
 
-    const { material_id_and_quantity, ...dao } = createProductDto;
+    const { material_id_and_quantity, sub_product_ids, ...dao } =
+      createProductDto;
     const product = await this.productRepository.save({
       ...dao,
       sub_products: mappedSubProducts,

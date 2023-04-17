@@ -31,8 +31,8 @@ export class CreateProductDto {
   serving_per_package: number;
 
   @IsArray()
-  sub_product_ids: number[] = [];
+  sub_product_ids?: number[] = [];
 
   @IsArray()
-  material_id_and_quantity: MaterialIdAndQuantity[] = [];
+  material_id_and_quantity?: MaterialIdAndQuantity[] = [];
 }
