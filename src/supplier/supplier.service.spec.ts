@@ -1,20 +1,22 @@
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { DataSourceOptions } from 'typeorm';
-import { Material } from '../material/entities/material.entity';
-import { MaterialService } from '../material/material.service';
-import { MaterialProduct } from '../product/entities/material_product.entity';
-import { Product } from '../product/entities/product.entity';
-import { Supplier } from './entities/supplier.entity';
-import { SupplierService } from './supplier.service';
+import { initializeTransactionalContext } from 'typeorm-transactional';
 import { TYPEORM_TEST_IMPORTS } from '../common/typeorm_test_helper';
+import { MaterialService } from '../material/material.service';
+import { SupplierService } from './supplier.service';
 
 describe('SupplierService', () => {
   let supplierService: SupplierService;
   let materialService: MaterialService;
 
+  beforeAll(() => {
+    initializeTransactionalContext();
+  });
+
   beforeEach(async () => {
+    jest.mock('typeorm-transactional', () => ({
+      Transactional: () => jest.fn(),
+    }));
     const module: TestingModule = await Test.createTestingModule({
       imports: [...TYPEORM_TEST_IMPORTS()],
       providers: [SupplierService, MaterialService],

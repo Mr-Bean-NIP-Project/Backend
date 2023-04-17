@@ -1,9 +1,12 @@
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { DataSourceOptions } from 'typeorm';
-import { Supplier } from '../supplier/entities/supplier.entity';
+import { DataSource, DataSourceOptions } from 'typeorm';
+import { addTransactionalDataSource } from 'typeorm-transactional';
 import { Material } from '../material/entities/material.entity';
 import { MaterialProduct } from '../product/entities/material_product.entity';
 import { Product } from '../product/entities/product.entity';
+import { Supplier } from '../supplier/entities/supplier.entity';
+
+let addedTransactionalDataSourceBefore: boolean = false;
 
 export function TYPEORM_TEST_IMPORTS() {
   const dataSourceOptions: DataSourceOptions = {
@@ -15,7 +18,21 @@ export function TYPEORM_TEST_IMPORTS() {
   };
 
   return [
-    TypeOrmModule.forRoot(dataSourceOptions),
+    TypeOrmModule.forRootAsync({
+      useFactory() {
+        return dataSourceOptions;
+      },
+      async dataSourceFactory(options) {
+        if (!options) {
+          throw new Error('Invalid options passed');
+        }
+        if (!addedTransactionalDataSourceBefore) {
+          addedTransactionalDataSourceBefore = true;
+          return addTransactionalDataSource(new DataSource(options));
+        }
+        return new DataSource(options);
+      },
+    }),
     TypeOrmModule.forFeature([Supplier, Material, MaterialProduct, Product]),
   ];
 }

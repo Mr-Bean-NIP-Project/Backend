@@ -1,23 +1,25 @@
 import { NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { DataSourceOptions } from 'typeorm';
-import { MaterialProduct } from '../product/entities/material_product.entity';
-import { Product } from '../product/entities/product.entity';
+import { TYPEORM_TEST_IMPORTS } from '../common/typeorm_test_helper';
 import { CreateSupplierDto } from '../supplier/dto/create-supplier.dto';
-import { Supplier } from '../supplier/entities/supplier.entity';
 import { SupplierService } from '../supplier/supplier.service';
 import { CreateMaterialDto } from './dto/create-material.dto';
-import { Material } from './entities/material.entity';
 import { MaterialController } from './material.controller';
 import { MaterialService } from './material.service';
-import { TYPEORM_TEST_IMPORTS } from '../common/typeorm_test_helper';
+import { initializeTransactionalContext } from 'typeorm-transactional';
 
 describe('MaterialController', () => {
   let controller: MaterialController;
   let supplierService: SupplierService;
 
+  beforeAll(() => {
+    initializeTransactionalContext();
+  });
+
   beforeEach(async () => {
+    jest.mock('typeorm-transactional', () => ({
+      Transactional: () => jest.fn(),
+    }));
     const module: TestingModule = await Test.createTestingModule({
       imports: [...TYPEORM_TEST_IMPORTS()],
       controllers: [MaterialController],
