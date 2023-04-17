@@ -10,6 +10,7 @@ import { SupplierService } from '../supplier/supplier.service';
 import { CreateMaterialDto } from './dto/create-material.dto';
 import { UpdateMaterialDto } from './dto/update-material.dto';
 import { Material } from './entities/material.entity';
+import { Transactional } from 'typeorm-transactional';
 
 @Injectable()
 export class MaterialService {
@@ -20,6 +21,7 @@ export class MaterialService {
     private supplierService: SupplierService,
   ) {}
 
+  @Transactional()
   async create(createMaterialDto: CreateMaterialDto) {
     const supplier = await this.supplierService.findOne(
       createMaterialDto.supplier_id,
@@ -32,14 +34,17 @@ export class MaterialService {
     return await this.materialRepository.save(newMaterial);
   }
 
+  @Transactional()
   async findAll() {
     return await this.materialRepository.find();
   }
 
+  @Transactional()
   async findOne(id: number) {
     return await this.materialRepository.findOneBy({ id });
   }
 
+  @Transactional()
   async update(id: number, updateMaterialDto: UpdateMaterialDto) {
     const material = await this.findOne(id);
 
@@ -59,6 +64,7 @@ export class MaterialService {
     return this.materialRepository.save({ ...material, ...dao, supplier });
   }
 
+  @Transactional()
   async remove(id: number) {
     const material = await this.findOne(id);
     if (!material) {
@@ -67,6 +73,7 @@ export class MaterialService {
     return this.materialRepository.remove(material);
   }
 
+  @Transactional()
   async findTaggedSupplier(supplier_id: number) {
     return await this.materialRepository.find({
       where: {

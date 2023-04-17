@@ -14,6 +14,7 @@ import { Product } from './entities/product.entity';
 import { MaterialService } from '../material/material.service';
 import { Material } from '../material/entities/material.entity';
 import { MaterialProduct } from './entities/material_product.entity';
+import { Transactional } from 'typeorm-transactional';
 
 @Injectable()
 export class ProductService {
@@ -25,9 +26,10 @@ export class ProductService {
     private readonly materialService: MaterialService,
   ) {}
 
+  @Transactional()
   async create(createProductDto: CreateProductDto) {
     const materialIds = createProductDto.material_id_and_quantity.map(
-      (x) => x[0],
+      (x) => x.material_id,
     );
     const mappedMaterials = await Promise.all(
       materialIds.map(async (mat) => {
@@ -78,6 +80,7 @@ export class ProductService {
     return { ...product, material_product: materialProduct };
   }
 
+  @Transactional()
   async findAll() {
     return await this.productRepository.find({
       relations: {
@@ -87,6 +90,7 @@ export class ProductService {
     });
   }
 
+  @Transactional()
   async findOne(id: number) {
     return await this.productRepository.findOne({
       relations: {
@@ -97,13 +101,14 @@ export class ProductService {
     });
   }
 
+  @Transactional()
   async update(id: number, updateProductDto: UpdateProductDto) {
     const product = await this.findOne(id);
     if (!product) {
       throw new NotFoundException('Product not found!');
     }
     const materialIds = updateProductDto.material_id_and_quantity.map(
-      (x) => x[0],
+      (x) => x.material_id,
     );
     const mappedMaterials = await Promise.all(
       materialIds.map(async (mat) => {
@@ -155,6 +160,7 @@ export class ProductService {
     return newProduct;
   }
 
+  @Transactional()
   async remove(id: number) {
     const product = await this.findOne(id);
     if (!product) {
