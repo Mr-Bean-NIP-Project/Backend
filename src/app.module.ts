@@ -7,6 +7,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { dataSourceOptions } from '../db/data-source';
 import { SupplierModule } from './supplier/supplier.module';
 import { MaterialModule } from './material/material.module';
+import { ProductModule } from './product/product.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { MaterialModule } from './material/material.module';
     TypeOrmModule.forRoot(dataSourceOptions),
     SupplierModule,
     MaterialModule,
+    ProductModule,
   ],
   controllers: [AppController],
   providers: [AppService],
