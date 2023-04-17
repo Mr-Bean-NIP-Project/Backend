@@ -8,6 +8,8 @@ import { CreateSupplierDto } from './dto/create-supplier.dto';
 import { NotFoundException } from '@nestjs/common';
 import { Material } from '../material/entities/material.entity';
 import { MaterialModule } from '../material/material.module';
+import { MaterialProduct } from '../product/entities/material_product.entity';
+import { Product } from '../product/entities/product.entity';
 
 describe('SupplierController', () => {
   let controller: SupplierController;
@@ -17,15 +19,20 @@ describe('SupplierController', () => {
       type: 'sqlite',
       database: ':memory:',
       dropSchema: true,
-      entities: [Supplier, Material],
+      entities: [Supplier, Material, MaterialProduct, Product],
       synchronize: true,
     };
 
     const module: TestingModule = await Test.createTestingModule({
       imports: [
         TypeOrmModule.forRoot(dataSourceOptions),
-        TypeOrmModule.forFeature([Supplier, Material]),
-        MaterialModule
+        TypeOrmModule.forFeature([
+          Supplier,
+          Material,
+          MaterialProduct,
+          Product,
+        ]),
+        MaterialModule,
       ],
       controllers: [SupplierController],
       providers: [SupplierService],
@@ -40,8 +47,8 @@ describe('SupplierController', () => {
 
   it('should create 1 supplier', async () => {
     const dto: CreateSupplierDto = {
-      name: "NTUC"
-    }
+      name: 'NTUC',
+    };
     const result = await controller.create(dto);
     expect(result.id).toBe(1);
     expect(result.name).toStrictEqual(dto.name);
@@ -51,11 +58,11 @@ describe('SupplierController', () => {
 
   it('should get all suppliers', async () => {
     const dto1: CreateSupplierDto = {
-      name: "NTUC"
-    }
+      name: 'NTUC',
+    };
     const dto2: CreateSupplierDto = {
-      name: "NTUC2"
-    }
+      name: 'NTUC2',
+    };
 
     // create 2 suppliers
     await controller.create(dto1);
@@ -67,56 +74,56 @@ describe('SupplierController', () => {
 
   it('should get one supplier', async () => {
     const dto1: CreateSupplierDto = {
-      name: "NTUC"
-    }
+      name: 'NTUC',
+    };
     const dto2: CreateSupplierDto = {
-      name: "NTUC2"
-    }
+      name: 'NTUC2',
+    };
 
     // create 2 suppliers
     await controller.create(dto1);
     await controller.create(dto2);
 
-    const supplier = await controller.findOne("1");
+    const supplier = await controller.findOne('1');
     expect(supplier.name).toBe(dto1.name);
   });
 
-  it('should update supplier successfully', async() => {
-    const newName = "NEWNTUC"
+  it('should update supplier successfully', async () => {
+    const newName = 'NEWNTUC';
     const dto: CreateSupplierDto = {
-      name: "NTUC"
-    }
+      name: 'NTUC',
+    };
     const result = await controller.create(dto);
     await controller.update(JSON.stringify(result.id), { name: newName });
 
     const supplier = await controller.findOne(JSON.stringify(result.id));
     expect(supplier.name).toBe(newName);
-  })
+  });
 
-  it('should fail to update supplier', async() => {
-    const newName = "NEWNTUC"
+  it('should fail to update supplier', async () => {
+    const newName = 'NEWNTUC';
     const t = async () => {
       return await controller.update(JSON.stringify(1), { name: newName });
     };
     await expect(t).rejects.toThrowError(NotFoundException);
-  })
+  });
 
-  it('should delete supplier successfully', async() => {
-    const newName = "NEWNTUC"
+  it('should delete supplier successfully', async () => {
+    const newName = 'NEWNTUC';
     const dto: CreateSupplierDto = {
-      name: "NTUC"
-    }
+      name: 'NTUC',
+    };
     const result = await controller.create(dto);
     await controller.remove(JSON.stringify(result.id));
 
     const supplier = await controller.findOne(JSON.stringify(result.id));
     expect(supplier).toBeNull();
-  })
+  });
 
-  it('should fail to delete supplier', async() => {
+  it('should fail to delete supplier', async () => {
     const t = async () => {
       return await controller.remove(JSON.stringify(1));
     };
     await expect(t).rejects.toThrowError(NotFoundException);
-  })
+  });
 });
