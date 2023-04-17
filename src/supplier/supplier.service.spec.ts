@@ -8,30 +8,15 @@ import { MaterialProduct } from '../product/entities/material_product.entity';
 import { Product } from '../product/entities/product.entity';
 import { Supplier } from './entities/supplier.entity';
 import { SupplierService } from './supplier.service';
+import { TYPEORM_TEST_IMPORTS } from '../common/typeorm_test_helper';
 
 describe('SupplierService', () => {
   let supplierService: SupplierService;
   let materialService: MaterialService;
 
   beforeEach(async () => {
-    const dataSourceOptions: DataSourceOptions = {
-      type: 'sqlite',
-      database: ':memory:',
-      dropSchema: true,
-      entities: [Supplier, Material, MaterialProduct, Product],
-      synchronize: true,
-    };
-
     const module: TestingModule = await Test.createTestingModule({
-      imports: [
-        TypeOrmModule.forRoot(dataSourceOptions),
-        TypeOrmModule.forFeature([
-          Supplier,
-          Material,
-          MaterialProduct,
-          Product,
-        ]),
-      ],
+      imports: [...TYPEORM_TEST_IMPORTS()],
       providers: [SupplierService, MaterialService],
     }).compile();
 
