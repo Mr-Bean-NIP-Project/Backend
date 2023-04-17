@@ -8,6 +8,11 @@ import {
 } from 'class-validator';
 import { SERVING_UNIT } from '../entities/product.entity';
 
+export interface MaterialIdAndQuantity {
+  material_id: number;
+  quantity: number;
+}
+
 export class CreateProductDto {
   @IsString()
   @IsNotEmpty()
@@ -29,5 +34,5 @@ export class CreateProductDto {
   sub_product_ids: number[] = [];
 
   @IsArray()
-  material_ids: number[] = [];
+  material_id_and_quantity: MaterialIdAndQuantity[] = [];
 }
