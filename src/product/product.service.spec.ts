@@ -236,7 +236,7 @@ describe('ProductService', () => {
       serving_unit: SERVING_UNIT.ML,
       serving_per_package: 1,
       material_id_and_quantity: [],
-      sub_product_ids: [2],
+      sub_product_ids: [1],
     };
     const t = async () => {
       return await productService.create(dto);
