@@ -265,7 +265,7 @@ export class ProductService {
     }
 
     const materialNutrition: Nutrition =
-      this.calculateNutritionFromMaterialProduct(product.material_product);
+      this.calculateNutritionPerServingFromMaterialProduct(product.material_product);
 
     if (!product.sub_products || product.sub_products.length == 0) {
       // base case, when product doesn't have subproducts, it's a leaf node
@@ -284,7 +284,7 @@ export class ProductService {
   }
 
   // given a product's tagged materials, calcualte the nutrition quantity
-  private calculateNutritionFromMaterialProduct(
+  private calculateNutritionPerServingFromMaterialProduct(
     materials: MaterialProduct[] = [],
   ): Nutrition {
     if (materials.length === 0) {
