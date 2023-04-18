@@ -191,11 +191,13 @@ export class ProductService {
       mappedMaterials,
     );
 
-    const { material_id_and_quantity, ...dao } = updateProductDto;
+    const { material_id_and_quantity, sub_product_ids, ...dao } =
+      updateProductDto;
     const newProduct = await this.productRepository.save({
       ...product,
       ...dao,
       material_product: materialProduct,
+      sub_products: mappedSubProducts,
     });
 
     await this.materialProductRepository.save(materialProduct);

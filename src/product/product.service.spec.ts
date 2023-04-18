@@ -10,6 +10,7 @@ import { SupplierService } from '../supplier/supplier.service';
 import { CreateSupplierDto } from '../supplier/dto/create-supplier.dto';
 import { CreateMaterialDto } from '../material/dto/create-material.dto';
 import { BadRequestException } from '@nestjs/common';
+import { UpdateProductDto } from './dto/update-product.dto';
 
 describe('ProductService', () => {
   let productService: ProductService;
@@ -261,5 +262,27 @@ describe('ProductService', () => {
     };
 
     await expect(t).rejects.toThrowError(BadRequestException);
+  });
+
+  it('should update successfully', async () => {
+    const dto1: CreateProductDto = {
+      name: 'p1',
+      serving_size: 10,
+      serving_unit: SERVING_UNIT.ML,
+      serving_per_package: 1,
+      material_id_and_quantity: [],
+      sub_product_ids: [],
+    };
+    const p1 = await productService.create(dto1);
+
+    const dto2: UpdateProductDto = {
+      name: 'p2',
+      material_id_and_quantity: [],
+      sub_product_ids: [],
+    };
+    const p2 = await productService.update(p1.id, dto2);
+
+    const productInDb = await productService.findOne(p2.id);
+    expect(p2).toEqual(productInDb);
   });
 });
