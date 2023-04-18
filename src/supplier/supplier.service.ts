@@ -1,4 +1,10 @@
-import { BadRequestException, Inject, Injectable, NotFoundException, forwardRef } from '@nestjs/common';
+import {
+  BadRequestException,
+  Inject,
+  Injectable,
+  NotFoundException,
+  forwardRef,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateSupplierDto } from './dto/create-supplier.dto';
@@ -13,11 +19,17 @@ export class SupplierService {
     @InjectRepository(Supplier)
     private readonly supplierRepository: Repository<Supplier>,
     @Inject(forwardRef(() => MaterialService))
-    private readonly materialService: MaterialService
+    private readonly materialService: MaterialService,
   ) {}
 
   @Transactional()
   async create(createSupplierDto: CreateSupplierDto) {
+    const sameNameSupplier = await this.findOneByName(createSupplierDto.name);
+    if (sameNameSupplier) {
+      throw new BadRequestException(
+        `Supplier with id: ${sameNameSupplier.id} has the same name!`,
+      );
+    }
     const newSupplier = this.supplierRepository.create(createSupplierDto);
     return await this.supplierRepository.save(newSupplier);
   }
@@ -30,6 +42,11 @@ export class SupplierService {
   @Transactional()
   async findOne(id: number) {
     return await this.supplierRepository.findOneBy({ id });
+  }
+
+  @Transactional()
+  async findOneByName(name: string) {
+    return await this.supplierRepository.findOneBy({ name });
   }
 
   @Transactional()
@@ -51,7 +68,9 @@ export class SupplierService {
     // check before deleting this supplier that there's no material belonging to it
     const taggedMaterials = await this.materialService.findTaggedSupplier(id);
     if (taggedMaterials.length > 0) {
-      throw new BadRequestException(`There's still ${taggedMaterials.length} material(s) tagged to this supplier!`);
+      throw new BadRequestException(
+        `There's still ${taggedMaterials.length} material(s) tagged to this supplier!`,
+      );
     }
 
     return this.supplierRepository.remove(supplier);

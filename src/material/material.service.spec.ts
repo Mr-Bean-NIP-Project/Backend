@@ -1,10 +1,11 @@
-import { NotFoundException } from '@nestjs/common';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { TYPEORM_TEST_IMPORTS } from '../common/typeorm_test_helper';
 import { SupplierService } from '../supplier/supplier.service';
 import { Material } from './entities/material.entity';
 import { MaterialService } from './material.service';
 import { initializeTransactionalContext } from 'typeorm-transactional';
+import { CreateMaterialDto } from './dto/create-material.dto';
 
 describe('MaterialService', () => {
   let materialService: MaterialService;
@@ -116,5 +117,19 @@ describe('MaterialService', () => {
     };
 
     await expect(t).rejects.toThrowError(NotFoundException);
+  });
+
+  it('should prevent creation of same name material', async () => {
+    const createdSupplier = await supplierService.create({ name: 'NTUC' });
+    const t = async () => {
+      const dto: CreateMaterialDto = {
+        name: 'mat1',
+        supplier_id: createdSupplier.id,
+      };
+      await materialService.create(dto);
+      return await materialService.create(dto);
+    };
+
+    await expect(t).rejects.toThrowError(BadRequestException);
   });
 });

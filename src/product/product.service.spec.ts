@@ -9,6 +9,7 @@ import { MaterialService } from '../material/material.service';
 import { SupplierService } from '../supplier/supplier.service';
 import { CreateSupplierDto } from '../supplier/dto/create-supplier.dto';
 import { CreateMaterialDto } from '../material/dto/create-material.dto';
+import { BadRequestException } from '@nestjs/common';
 
 describe('ProductService', () => {
   let productService: ProductService;
@@ -164,5 +165,27 @@ describe('ProductService', () => {
     const products = await productService.findAll();
     expect(products).toContainEqual(p1);
     expect(products).toContainEqual(p2);
+  });
+
+  it('should prevent creation of same name product', async () => {
+    const dto1: CreateProductDto = {
+      name: 'p1',
+      serving_size: 10,
+      serving_unit: SERVING_UNIT.ML,
+      serving_per_package: 1,
+      material_id_and_quantity: [],
+      sub_product_ids: [],
+    };
+    const dto2: CreateProductDto = {
+      ...dto1,
+    };
+
+    await productService.create(dto1);
+
+    const t = async () => {
+      return await productService.create(dto2);
+    };
+
+    await expect(t).rejects.toThrowError(BadRequestException);
   });
 });

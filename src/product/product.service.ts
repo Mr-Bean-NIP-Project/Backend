@@ -28,6 +28,12 @@ export class ProductService {
 
   @Transactional()
   async create(createProductDto: CreateProductDto) {
+    const sameNameProduct = await this.findOneByName(createProductDto.name);
+    if (sameNameProduct) {
+      throw new BadRequestException(
+        `Product with id: ${sameNameProduct.id} has the same name!`,
+      );
+    }
     const materialIds = createProductDto.material_id_and_quantity.map(
       (x) => x.material_id,
     );
@@ -119,6 +125,20 @@ export class ProductService {
         },
       },
       where: { id },
+    });
+  }
+
+  @Transactional()
+  async findOneByName(name: string) {
+    return await this.productRepository.findOne({
+      relations: {
+        sub_products: true,
+        material_product: {
+          material: true,
+          product: true,
+        },
+      },
+      where: { name },
     });
   }
 

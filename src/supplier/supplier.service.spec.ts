@@ -4,6 +4,7 @@ import { initializeTransactionalContext } from 'typeorm-transactional';
 import { TYPEORM_TEST_IMPORTS } from '../common/typeorm_test_helper';
 import { MaterialService } from '../material/material.service';
 import { SupplierService } from './supplier.service';
+import { CreateSupplierDto } from './dto/create-supplier.dto';
 
 describe('SupplierService', () => {
   let supplierService: SupplierService;
@@ -93,6 +94,18 @@ describe('SupplierService', () => {
         supplier_id: createdSupplier.id,
       });
       return await supplierService.remove(createdSupplier.id);
+    };
+
+    await expect(t).rejects.toThrowError(BadRequestException);
+  });
+
+  it('should prevent the creation of same name supplier', async () => {
+    const t = async () => {
+      const dto: CreateSupplierDto = {
+        name: 'NTUC',
+      };
+      await supplierService.create(dto);
+      return await supplierService.create(dto);
     };
 
     await expect(t).rejects.toThrowError(BadRequestException);

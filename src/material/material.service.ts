@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Inject,
   Injectable,
   NotFoundException,
@@ -29,6 +30,14 @@ export class MaterialService {
     if (!supplier) {
       throw new NotFoundException('Supplier not found!');
     }
+
+    const sameNameMaterial = await this.findOneByName(createMaterialDto.name);
+    if (sameNameMaterial) {
+      throw new BadRequestException(
+        `Material with id: ${sameNameMaterial.id} has the same name!`,
+      );
+    }
+
     const { supplier_id, ...dao } = createMaterialDto;
     const newMaterial = this.materialRepository.create({ ...dao, supplier });
     return await this.materialRepository.save(newMaterial);
@@ -42,6 +51,11 @@ export class MaterialService {
   @Transactional()
   async findOne(id: number) {
     return await this.materialRepository.findOneBy({ id });
+  }
+
+  @Transactional()
+  async findOneByName(name: string) {
+    return await this.materialRepository.findOneBy({ name });
   }
 
   @Transactional()
