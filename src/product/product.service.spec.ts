@@ -12,7 +12,7 @@ import { CreateMaterialDto } from '../material/dto/create-material.dto';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { ProductModule } from './product.module';
-import { EMPTY_NUTRITION, Nutrition } from './dto/nip.dto';
+import { GET_EMPTY_NUTRITION } from './dto/nip.dto';
 
 describe('ProductService', () => {
   let productService: ProductService;
@@ -796,7 +796,7 @@ describe('ProductService', () => {
     expect(nip.serving_size).toEqual(p1.serving_size);
     expect(nip.serving_unit).toEqual(p1.serving_unit);
     expect(nip.serving_per_package).toEqual(p1.serving_per_package);
-    expect(nip.per_serving).toEqual(EMPTY_NUTRITION);
-    expect(nip.per_hundred).toEqual(EMPTY_NUTRITION);
+    expect(nip.per_serving).toEqual(GET_EMPTY_NUTRITION());
+    expect(nip.per_hundred).toEqual(GET_EMPTY_NUTRITION());
   });
 });
