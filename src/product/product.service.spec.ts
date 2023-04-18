@@ -9,7 +9,7 @@ import { MaterialService } from '../material/material.service';
 import { SupplierService } from '../supplier/supplier.service';
 import { CreateSupplierDto } from '../supplier/dto/create-supplier.dto';
 import { CreateMaterialDto } from '../material/dto/create-material.dto';
-import { BadRequestException } from '@nestjs/common';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { UpdateProductDto } from './dto/update-product.dto';
 
 describe('ProductService', () => {
@@ -621,5 +621,57 @@ describe('ProductService', () => {
     // also need to check if material_products are unchanged
     expect(updatedProduct.material_product).not.toEqual(p1.material_product);
     expect(productInDb.material_product).not.toEqual(p1.material_product);
+  });
+
+  it('should fail to delete a product that does not exist', async () => {
+    const t = async () => {
+      return await productService.remove(1);
+    };
+
+    await expect(t).rejects.toThrowError(NotFoundException);
+  });
+
+  it("should fail to delete a product is part of another product's subproduct (fail cos have parents)", async () => {
+    const dto1: CreateProductDto = {
+      name: 'p1',
+      serving_size: 10,
+      serving_unit: SERVING_UNIT.ML,
+      serving_per_package: 1,
+      material_id_and_quantity: [],
+      sub_product_ids: [],
+    };
+    const p1 = await productService.create(dto1);
+
+    const dto2: CreateProductDto = {
+      name: 'p2',
+      serving_size: 10,
+      serving_unit: SERVING_UNIT.ML,
+      serving_per_package: 1,
+      material_id_and_quantity: [],
+      sub_product_ids: [p1.id],
+    };
+    await productService.create(dto2);
+
+    const t = async () => {
+      return await productService.remove(p1.id);
+    };
+
+    await expect(t).rejects.toThrowError(BadRequestException);
+  });
+
+  it('should successfully remove a product', async () => {
+    const dto1: CreateProductDto = {
+      name: 'p1',
+      serving_size: 10,
+      serving_unit: SERVING_UNIT.ML,
+      serving_per_package: 1,
+      material_id_and_quantity: [],
+      sub_product_ids: [],
+    };
+    const p1 = await productService.create(dto1);
+
+    await productService.remove(p1.id);
+
+    expect(await productService.findOne(p1.id)).toBeNull();
   });
 });
