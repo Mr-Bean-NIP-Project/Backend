@@ -34,7 +34,7 @@ describe('ProductService', () => {
     expect(productService).toBeDefined();
   });
 
-  it('should create 1 product (no material/subproduct)', async () => {
+  it('should create product(s) (no material/subproduct)', async () => {
     const dto: CreateProductDto = {
       name: 'p1',
       serving_size: 10,
@@ -49,7 +49,7 @@ describe('ProductService', () => {
     expect(createdProduct).toEqual(productInDb);
   });
 
-  it('should create 1 product with subproduct (no material)', async () => {
+  it('should create product(s) with subproduct (no material)', async () => {
     const dto1: CreateProductDto = {
       name: 'p1',
       serving_size: 10,
@@ -74,7 +74,7 @@ describe('ProductService', () => {
     expect(createdProduct2).toEqual(product2InDb);
   });
 
-  it('should create 1 product with material (no subproduct)', async () => {
+  it('should create product(s) with material (no subproduct)', async () => {
     const supplierDto: CreateSupplierDto = {
       name: 'sup1',
     };
@@ -142,5 +142,27 @@ describe('ProductService', () => {
 
     expect(createdProduct1).toEqual(product1InDb);
     expect(createdProduct2).toEqual(product2InDb);
+  });
+
+  it('should get all product(s)', async () => {
+    const dto1: CreateProductDto = {
+      name: 'p1',
+      serving_size: 10,
+      serving_unit: SERVING_UNIT.ML,
+      serving_per_package: 1,
+      material_id_and_quantity: [],
+      sub_product_ids: [],
+    };
+    const dto2: CreateProductDto = {
+      ...dto1,
+      name: 'p2',
+    };
+
+    const p1 = await productService.create(dto1);
+    const p2 = await productService.create(dto2);
+
+    const products = await productService.findAll();
+    expect(products).toContainEqual(p1);
+    expect(products).toContainEqual(p2);
   });
 });
