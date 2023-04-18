@@ -241,7 +241,6 @@ export class ProductService {
   @Transactional()
   async getNip(id: number): Promise<NipDto> {
     const product: Product = await this.findOneOrThrow(id);
-    console.log(product);
     const nutritionPerServing: Nutrition =
       await calculateNutritionPerServingFromProduct({
         product,
