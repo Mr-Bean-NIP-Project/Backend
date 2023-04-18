@@ -144,6 +144,12 @@ export class ProductService {
     if (!product) {
       throw new NotFoundException('Product not found!');
     }
+    if (
+      updateProductDto.sub_product_ids &&
+      updateProductDto.sub_product_ids.includes(product.id)
+    ) {
+      throw new BadRequestException(`Cyclic sub product not allowed!`);
+    }
     const materialIds = updateProductDto.material_id_and_quantity.map(
       (x) => x.material_id,
     );

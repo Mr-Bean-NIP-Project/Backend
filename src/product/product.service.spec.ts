@@ -212,4 +212,54 @@ describe('ProductService', () => {
 
     await expect(t).rejects.toThrowError(BadRequestException);
   });
+
+  it('should fail to create product with unknown material', async () => {
+    const dto: CreateProductDto = {
+      name: 'p1',
+      serving_size: 10,
+      serving_unit: SERVING_UNIT.ML,
+      serving_per_package: 1,
+      material_id_and_quantity: [{ material_id: 1, quantity: 1 }],
+      sub_product_ids: [],
+    };
+    const t = async () => {
+      return await productService.create(dto);
+    };
+
+    await expect(t).rejects.toThrowError(BadRequestException);
+  });
+
+  it('should fail to create product with unknown sub-product', async () => {
+    const dto: CreateProductDto = {
+      name: 'p1',
+      serving_size: 10,
+      serving_unit: SERVING_UNIT.ML,
+      serving_per_package: 1,
+      material_id_and_quantity: [],
+      sub_product_ids: [2],
+    };
+    const t = async () => {
+      return await productService.create(dto);
+    };
+
+    await expect(t).rejects.toThrowError(BadRequestException);
+  });
+
+  it('should fail to update product cylic subproduct', async () => {
+    const dto1: CreateProductDto = {
+      name: 'p1',
+      serving_size: 10,
+      serving_unit: SERVING_UNIT.ML,
+      serving_per_package: 1,
+      material_id_and_quantity: [],
+      sub_product_ids: [],
+    };
+    const p1 = await productService.create(dto1);
+
+    const t = async () => {
+      return await productService.update(p1.id, { sub_product_ids: [p1.id] });
+    };
+
+    await expect(t).rejects.toThrowError(BadRequestException);
+  });
 });
