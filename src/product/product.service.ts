@@ -76,9 +76,11 @@ export class ProductService {
       mappedMaterials,
     );
 
-    await this.materialProductRepository.save(materialProduct);
+    const createdMaterialProduct = await this.materialProductRepository.save(
+      materialProduct,
+    );
 
-    return { ...product, material_product: materialProduct };
+    return { ...product, material_product: createdMaterialProduct };
   }
 
   @Transactional()
@@ -96,7 +98,9 @@ export class ProductService {
     return await this.productRepository.findOne({
       relations: {
         sub_products: true,
-        material_product: true,
+        material_product: {
+          material: true,
+        },
       },
       where: { id },
     });
