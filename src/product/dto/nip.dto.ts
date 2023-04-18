@@ -31,6 +31,19 @@ export class Nutrition {
   dietary_fibre: BigSource;
   sodium: BigSource;
 
+  constructor() {
+    this.energy = '0';
+    this.protein = '0';
+    this.total_fat = '0';
+    this.saturated_fat = '0';
+    this.trans_fat = '0';
+    this.cholesterol = '0';
+    this.carbohydrate = '0';
+    this.sugars = '0';
+    this.dietary_fibre = '0';
+    this.sodium = '0';
+  }
+
   static staticCopy(other: Nutrition): Nutrition {
     return Object.assign(Object.create(Object.getPrototypeOf(other)), other);
   }
