@@ -4,6 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import Big, { BigSource } from 'big.js';
 import { Repository } from 'typeorm';
 import { Transactional } from 'typeorm-transactional';
 import { Material } from '../material/entities/material.entity';
@@ -12,11 +13,10 @@ import {
   CreateProductDto,
   MaterialIdAndQuantity,
 } from './dto/create-product.dto';
+import { NUMBER_OF_DP, NipDto, Nutrition } from './dto/nip.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { MaterialProduct } from './entities/material_product.entity';
 import { Product } from './entities/product.entity';
-import { NUMBER_OF_DP, NipDto, Nutrition } from './dto/nip.dto';
-import Big, { BigSource } from 'big.js';
 
 @Injectable()
 export class ProductService {
@@ -237,9 +237,10 @@ export class ProductService {
   async getNip(id: number): Promise<NipDto> {
     const product: Product = await this.findOneOrThrow(id);
 
-    const subProductNutritions: Nutrition<BigSource>[] = product.sub_products.map(
-      (p) => this.calculateNutrition(p.material_product),
-    );
+    const subProductNutritions: Nutrition<BigSource>[] =
+      product.sub_products.map((p) =>
+        this.calculateNutrition(p.material_product),
+      );
     const materialNutrition: Nutrition<BigSource> = this.calculateNutrition(
       product.material_product,
     );
@@ -302,16 +303,16 @@ export class ProductService {
   ): Nutrition<string> {
     const servingSize = Big(serving_size);
     const result = {
-      energy: Big(per_serving.energy).div(servingSize),
-      protein: Big(per_serving.protein).div(servingSize),
-      total_fat: Big(per_serving.total_fat).div(servingSize),
-      saturated_fat: Big(per_serving.saturated_fat).div(servingSize),
-      trans_fat: Big(per_serving.trans_fat).div(servingSize),
-      cholesterol: Big(per_serving.cholesterol).div(servingSize),
-      carbohydrate: Big(per_serving.carbohydrate).div(servingSize),
-      sugars: Big(per_serving.sugars).div(servingSize),
-      dietary_fibre: Big(per_serving.dietary_fibre).div(servingSize),
-      sodium: Big(per_serving.sodium).div(servingSize),
+      energy: Big(per_serving.energy).div(servingSize).times(100),
+      protein: Big(per_serving.protein).div(servingSize).times(100),
+      total_fat: Big(per_serving.total_fat).div(servingSize).times(100),
+      saturated_fat: Big(per_serving.saturated_fat).div(servingSize).times(100),
+      trans_fat: Big(per_serving.trans_fat).div(servingSize).times(100),
+      cholesterol: Big(per_serving.cholesterol).div(servingSize).times(100),
+      carbohydrate: Big(per_serving.carbohydrate).div(servingSize).times(100),
+      sugars: Big(per_serving.sugars).div(servingSize).times(100),
+      dietary_fibre: Big(per_serving.dietary_fibre).div(servingSize).times(100),
+      sodium: Big(per_serving.sodium).div(servingSize).times(100),
     };
     return this.convertNutritionOfBigToNutrionOfString(result);
   }
