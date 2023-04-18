@@ -24,6 +24,90 @@ import { UpdateProductDto } from './dto/update-product.dto';
 import { MaterialProduct } from './entities/material_product.entity';
 import { Product } from './entities/product.entity';
 
+// these needs to be here due to recursive nature
+// ====================================================================================================================================
+function calculateNutritionPerServingFromMaterialProduct(
+  materials: MaterialProduct[] = [],
+): Nutrition {
+  if (materials.length === 0) {
+    return GET_EMPTY_NUTRITION();
+  }
+  const nutritionQuantities = materials.map((m) => {
+    const {
+      id,
+      name,
+      created_at,
+      updated_at,
+      supplier,
+      material_product,
+      ...nutrition
+    } = m.material; // strip unused fields
+    return {
+      nutrition,
+      quantity: m.material_quantity,
+    };
+  }) as NutritionQuantity[];
+
+  const initialNutrition: Nutrition = GET_EMPTY_NUTRITION();
+  for (const { nutrition, quantity } of nutritionQuantities) {
+    initialNutrition.addOtherNutrition(nutrition, quantity);
+  }
+
+  return initialNutrition;
+}
+
+async function calculateNutritionPerServingFromProduct({
+  product,
+  accumulate = GET_EMPTY_NUTRITION(),
+  productRepository,
+}: {
+  product: Product;
+  accumulate?: Nutrition;
+  productRepository: Repository<Product>;
+}): Promise<Nutrition> {
+  if (!product) {
+    return GET_EMPTY_NUTRITION();
+  }
+
+  const materialNutrition: Nutrition =
+    calculateNutritionPerServingFromMaterialProduct(product.material_product);
+
+  if (!product.sub_products || product.sub_products.length == 0) {
+    // base case, when product doesn't have subproducts, it's a leaf node
+    // then we just return the material nutrition
+    return materialNutrition;
+  }
+
+  const subProductsRemapped: Product[] = await Promise.all(
+    product.sub_products.map(async (p) => {
+      return await productRepository.findOne({
+        relations: {
+          sub_products: true,
+          material_product: {
+            material: true,
+          },
+        },
+        where: { id: p.id },
+      });
+    }),
+  );
+  // recursive case
+  const subProductNutritions: Nutrition[] = await Promise.all(
+    subProductsRemapped.map(
+      async (product) =>
+        await calculateNutritionPerServingFromProduct({
+          product,
+          productRepository,
+        }),
+    ),
+  );
+
+  return [materialNutrition, ...subProductNutritions]
+    .reduce((acc, cur) => acc.addOtherNutrition(cur))
+    .addOtherNutrition(accumulate);
+}
+// ====================================================================================================================================
+
 @Injectable()
 export class ProductService {
   constructor(
@@ -243,8 +327,12 @@ export class ProductService {
   @Transactional()
   async getNip(id: number): Promise<NipDto> {
     const product: Product = await this.findOneOrThrow(id);
+    console.log(product);
     const nutritionPerServing: Nutrition =
-      this.calculateNutritionPerServingFromProduct(product);
+      await calculateNutritionPerServingFromProduct({
+        product,
+        productRepository: this.productRepository,
+      });
     return {
       name: product.name,
       serving_size: product.serving_size,
@@ -257,61 +345,6 @@ export class ProductService {
         .times(100)
         .stringify(),
     };
-  }
-
-  private calculateNutritionPerServingFromProduct(product: Product): Nutrition {
-    if (!product) {
-      return GET_EMPTY_NUTRITION();
-    }
-
-    const materialNutrition: Nutrition =
-      this.calculateNutritionPerServingFromMaterialProduct(product.material_product);
-
-    if (!product.sub_products || product.sub_products.length == 0) {
-      // base case, when product doesn't have subproducts, it's a leaf node
-      // then we just return the material nutrition
-      return materialNutrition;
-    }
-
-    // recursive case
-    const subProductNutritions: Nutrition[] = product.sub_products.map(
-      this.calculateNutritionPerServingFromProduct,
-    );
-
-    return [materialNutrition, ...subProductNutritions].reduce((acc, cur) =>
-      acc.addOtherNutrition(cur),
-    );
-  }
-
-  // given a product's tagged materials, calcualte the nutrition quantity
-  private calculateNutritionPerServingFromMaterialProduct(
-    materials: MaterialProduct[] = [],
-  ): Nutrition {
-    if (materials.length === 0) {
-      return GET_EMPTY_NUTRITION();
-    }
-    const nutritionQuantities = materials.map((m) => {
-      const {
-        id,
-        name,
-        created_at,
-        updated_at,
-        supplier,
-        material_product,
-        ...nutrition
-      } = m.material; // strip unused fields
-      return {
-        nutrition,
-        quantity: m.material_quantity,
-      };
-    }) as NutritionQuantity[];
-
-    const initialNutrition: Nutrition = GET_EMPTY_NUTRITION();
-    for (const { nutrition, quantity } of nutritionQuantities) {
-      initialNutrition.addOtherNutrition(nutrition, quantity);
-    }
-
-    return initialNutrition;
   }
 
   private async getMissingMaterialIds(

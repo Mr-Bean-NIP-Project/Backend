@@ -891,4 +891,55 @@ describe('ProductService', () => {
         .stringify(),
     );
   });
+
+  it('should return NIP for product tagged to 1 subproduct', async () => {
+    const createdSupplier = await supplierService.create({ name: 'NTUC' });
+    const createdMaterial = await materialService.create({
+      name: 'mat1',
+      supplier_id: createdSupplier.id,
+      energy: '800',
+      protein: '500',
+    });
+    const dto1: CreateProductDto = {
+      name: 'p1',
+      serving_size: 200,
+      serving_unit: SERVING_UNIT.G,
+      serving_per_package: 1,
+      material_id_and_quantity: [
+        {
+          material_id: createdMaterial.id,
+          quantity: 2,
+        },
+      ],
+      sub_product_ids: [],
+    };
+    const p1 = await productService.create(dto1);
+
+    const dto2: CreateProductDto = {
+      name: 'p2',
+      serving_size: 200,
+      serving_unit: SERVING_UNIT.G,
+      serving_per_package: 1,
+      material_id_and_quantity: [],
+      sub_product_ids: [p1.id],
+    };
+    const p2 = await productService.create(dto2);
+
+    const expectedNutritionPerServing: Nutrition = new Nutrition();
+    expectedNutritionPerServing.energy = 1600;
+    expectedNutritionPerServing.protein = 1000;
+
+    const nip = await productService.getNip(p2.id);
+    expect(nip.name).toEqual(p2.name);
+    expect(nip.serving_size).toEqual(p2.serving_size);
+    expect(nip.serving_unit).toEqual(p2.serving_unit);
+    expect(nip.serving_per_package).toEqual(p2.serving_per_package);
+    expect(nip.per_serving).toEqual(expectedNutritionPerServing.stringify());
+    expect(nip.per_hundred).toEqual(
+      expectedNutritionPerServing
+        .divide(nip.serving_size)
+        .times(100)
+        .stringify(),
+    );
+  });
 });
