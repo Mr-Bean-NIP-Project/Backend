@@ -285,6 +285,14 @@ describe('ProductService', () => {
 
     const productInDb = await productService.findOne(p2.id);
     expect(p2).toEqual(productInDb);
+    expect(p1.sub_products).toHaveLength(dto1.sub_product_ids.length);
+    expect(p1.material_product).toHaveLength(
+      dto1.material_id_and_quantity.length,
+    );
+    expect(p2.sub_products).toHaveLength(dto2.sub_product_ids.length);
+    expect(p2.material_product).toHaveLength(
+      dto2.material_id_and_quantity.length,
+    );
   });
 
   it('should update successfully with subproduct', async () => {
@@ -320,6 +328,18 @@ describe('ProductService', () => {
     // check if all other fields are the same
     expect(p2NoSubProduct).toEqual(p3NoSubProduct);
     expect(p3).toEqual(productInDb);
+    expect(p1.sub_products).toHaveLength(dto1.sub_product_ids.length);
+    expect(p1.material_product).toHaveLength(
+      dto1.material_id_and_quantity.length,
+    );
+    expect(p2.sub_products).toHaveLength(dto2.sub_product_ids.length);
+    expect(p2.material_product).toHaveLength(
+      dto2.material_id_and_quantity.length,
+    );
+    expect(p3.sub_products).toHaveLength(updateDto.sub_product_ids.length);
+    expect(p3.material_product).toHaveLength(
+      updateDto.material_id_and_quantity.length,
+    );
   });
 
   it('should update successfully with material', async () => {
@@ -356,6 +376,14 @@ describe('ProductService', () => {
     // check if all other fields are the same
     expect(p1NoMp).toEqual(p2NoMp);
     expect(p2).toEqual(productInDb);
+    expect(p1.sub_products).toHaveLength(dto1.sub_product_ids.length);
+    expect(p1.material_product).toHaveLength(
+      dto1.material_id_and_quantity.length,
+    );
+    expect(p2.sub_products).toHaveLength(updateDto.sub_product_ids.length);
+    expect(p2.material_product).toHaveLength(
+      updateDto.material_id_and_quantity.length,
+    );
   });
 
   it('should update successfully with material and subproduct', async () => {
@@ -410,6 +438,20 @@ describe('ProductService', () => {
     // check if all other fields are the same
     expect(updatedProductNoMpNoSubProduct).toEqual(p2NoMpNoSubProduct);
     expect(updatedProduct).toEqual(productInDb);
+    expect(p1.sub_products).toHaveLength(dto1.sub_product_ids.length);
+    expect(p1.material_product).toHaveLength(
+      dto1.material_id_and_quantity.length,
+    );
+    expect(p2.sub_products).toHaveLength(dto2.sub_product_ids.length);
+    expect(p2.material_product).toHaveLength(
+      dto2.material_id_and_quantity.length,
+    );
+    expect(updatedProduct.sub_products).toHaveLength(
+      updateDto.sub_product_ids.length,
+    );
+    expect(updatedProduct.material_product).toHaveLength(
+      updateDto.material_id_and_quantity.length,
+    );
   });
 
   it('should update successfully without wiping previous subproduct', async () => {
