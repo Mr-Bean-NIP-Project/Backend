@@ -243,18 +243,8 @@ export class ProductService {
   @Transactional()
   async getNip(id: number): Promise<NipDto> {
     const product: Product = await this.findOneOrThrow(id);
-
-    const subProductNutritions: Nutrition[] = product.sub_products.map((p) =>
-      this.calculateNutritionFromMaterialProduct(p.material_product),
-    );
-    const materialNutrition: Nutrition =
-      this.calculateNutritionFromMaterialProduct(product.material_product);
-
-    const nutritionPerServing: Nutrition = [
-      materialNutrition,
-      ...subProductNutritions,
-    ].reduce((acc, cur) => acc.addOtherNutrition(cur));
-
+    const nutritionPerServing: Nutrition =
+      this.calculateNutritionPerServingFromProduct(product);
     return {
       name: product.name,
       serving_size: product.serving_size,
@@ -267,6 +257,30 @@ export class ProductService {
         .times(100)
         .stringify(),
     };
+  }
+
+  private calculateNutritionPerServingFromProduct(product: Product): Nutrition {
+    if (!product) {
+      return GET_EMPTY_NUTRITION();
+    }
+
+    const materialNutrition: Nutrition =
+      this.calculateNutritionFromMaterialProduct(product.material_product);
+
+    if (!product.sub_products || product.sub_products.length == 0) {
+      // base case, when product doesn't have subproducts, it's a leaf node
+      // then we just return the material nutrition
+      return materialNutrition;
+    }
+
+    // recursive case
+    const subProductNutritions: Nutrition[] = product.sub_products.map(
+      this.calculateNutritionPerServingFromProduct,
+    );
+
+    return [materialNutrition, ...subProductNutritions].reduce((acc, cur) =>
+      acc.addOtherNutrition(cur),
+    );
   }
 
   // given a product's tagged materials, calcualte the nutrition quantity
