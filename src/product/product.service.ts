@@ -13,7 +13,12 @@ import {
   CreateProductDto,
   MaterialIdAndQuantity,
 } from './dto/create-product.dto';
-import { NUMBER_OF_DP, NipDto, Nutrition } from './dto/nip.dto';
+import {
+  EMPTY_NUTRITION,
+  NUMBER_OF_DP,
+  NipDto,
+  Nutrition,
+} from './dto/nip.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { MaterialProduct } from './entities/material_product.entity';
 import { Product } from './entities/product.entity';
@@ -234,6 +239,7 @@ export class ProductService {
     return await this.productRepository.remove(product);
   }
 
+  @Transactional()
   async getNip(id: number): Promise<NipDto> {
     const product: Product = await this.findOneOrThrow(id);
 
@@ -267,7 +273,7 @@ export class ProductService {
   private sumArrayOfObjects(
     objects: Array<Nutrition<BigSource>>,
   ): Nutrition<BigSource> {
-    if (!objects || objects.length == 0) return {} as Nutrition<BigSource>;
+    if (!objects || objects.length === 0) return EMPTY_NUTRITION;
     return objects.reduce((a, obj) => {
       Object.entries(obj).forEach(([key, val]) => {
         a[key] = Big(a[key] || 0).add(Big(val));
@@ -280,6 +286,7 @@ export class ProductService {
   private calculateNutrition(
     materials: MaterialProduct[] = [],
   ): Nutrition<BigSource> {
+    if (materials.length === 0) return EMPTY_NUTRITION;
     const arrayOfMaterials = materials
       .map((m) => m.material)
       .map((m) => {
@@ -320,7 +327,7 @@ export class ProductService {
   private convertNutritionOfBigToNutrionOfString(
     nut: Nutrition<BigSource>,
   ): Nutrition<string> {
-    if (!nut) return {} as Nutrition<string>;
+    if (!nut) nut = EMPTY_NUTRITION;
     // toFixed is number of DP
     return {
       energy: Big(nut.energy).toFixed(NUMBER_OF_DP.energy),

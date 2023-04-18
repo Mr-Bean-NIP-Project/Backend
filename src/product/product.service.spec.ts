@@ -12,6 +12,7 @@ import { CreateMaterialDto } from '../material/dto/create-material.dto';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { ProductModule } from './product.module';
+import { EMPTY_NUTRITION, Nutrition } from './dto/nip.dto';
 
 describe('ProductService', () => {
   let productService: ProductService;
@@ -777,5 +778,25 @@ describe('ProductService', () => {
     await productService.remove(p1.id);
 
     expect(await productService.findOne(p1.id)).toBeNull();
+  });
+
+  it('should return empty NIP for untagged product', async () => {
+    const dto1: CreateProductDto = {
+      name: 'p1',
+      serving_size: 10,
+      serving_unit: SERVING_UNIT.ML,
+      serving_per_package: 1,
+      material_id_and_quantity: [],
+      sub_product_ids: [],
+    };
+    const p1 = await productService.create(dto1);
+
+    const nip = await productService.getNip(p1.id);
+    expect(nip.name).toEqual(p1.name);
+    expect(nip.serving_size).toEqual(p1.serving_size);
+    expect(nip.serving_unit).toEqual(p1.serving_unit);
+    expect(nip.serving_per_package).toEqual(p1.serving_per_package);
+    expect(nip.per_serving).toEqual(EMPTY_NUTRITION);
+    expect(nip.per_hundred).toEqual(EMPTY_NUTRITION);
   });
 });
