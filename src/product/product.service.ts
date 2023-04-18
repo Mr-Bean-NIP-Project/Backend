@@ -81,18 +81,13 @@ export class ProductService {
       materialProduct,
     );
 
+    // remove nested information to compact
     return {
       ...product,
-      sub_products: mappedSubProducts.map((sp) => {
-        // remove nested information to compact
-        sp.emptySubProductAndMaterialProduct();
-        return sp;
-      }),
-      material_product: createdMaterialProduct.map((mp) => {
-        // remove nested information to compact
-        mp.emptyNested();
-        return mp;
-      }),
+      sub_products: mappedSubProducts.map((sp) =>
+        sp.emptySubProductAndMaterialProduct(),
+      ),
+      material_product: createdMaterialProduct.map((mp) => mp.emptyNested()),
     };
   }
 
@@ -103,7 +98,6 @@ export class ProductService {
         sub_products: true,
         material_product: {
           material: true,
-          product: true,
         },
       },
     });
@@ -116,7 +110,6 @@ export class ProductService {
         sub_products: true,
         material_product: {
           material: true,
-          product: true,
         },
       },
       where: { id },
@@ -130,7 +123,6 @@ export class ProductService {
         sub_products: true,
         material_product: {
           material: true,
-          product: true,
         },
       },
       where: { name },
@@ -139,18 +131,22 @@ export class ProductService {
 
   @Transactional()
   async update(id: number, updateProductDto: UpdateProductDto) {
+    const hasSubProductUpdate: boolean = 'sub_product_ids' in updateProductDto;
+    const hasMaterialUpdate: boolean =
+      'material_id_and_quantity' in updateProductDto;
+
     await this.checkNoSameName(updateProductDto);
     const product = await this.findOne(id);
     if (!product) {
       throw new NotFoundException('Product not found!');
     }
     if (
-      updateProductDto.sub_product_ids &&
+      hasSubProductUpdate &&
       updateProductDto.sub_product_ids.includes(product.id)
     ) {
       throw new BadRequestException(`Cyclic sub product not allowed!`);
     }
-    const materialIds = updateProductDto.material_id_and_quantity.map(
+    const materialIds = (updateProductDto.material_id_and_quantity ?? []).map(
       (x) => x.material_id,
     );
     const mappedMaterials = await Promise.all(
@@ -168,7 +164,7 @@ export class ProductService {
       );
     }
 
-    const subProductIds = updateProductDto.sub_product_ids;
+    const subProductIds = updateProductDto.sub_product_ids ?? [];
     const mappedSubProducts = await Promise.all(
       subProductIds.map(async (mat) => {
         return await this.findOne(mat);
@@ -184,23 +180,34 @@ export class ProductService {
       );
     }
 
-    await this.removePreviousMaterialProduct(product);
-    const materialProduct = await this.getMaterialProduct(
-      product,
-      updateProductDto.material_id_and_quantity,
-      mappedMaterials,
-    );
-
-    const { material_id_and_quantity, sub_product_ids, ...dao } =
+    const { material_id_and_quantity, sub_product_ids, ...strippedDto } =
       updateProductDto;
-    const newProduct = await this.productRepository.save({
+
+    const dao: any = { ...strippedDto };
+
+    if (hasMaterialUpdate) {
+      await this.removePreviousMaterialProduct(product);
+      const materialProduct = await this.getMaterialProduct(
+        product,
+        updateProductDto.material_id_and_quantity,
+        mappedMaterials,
+      );
+      const createdMaterialProduct = await this.materialProductRepository.save(
+        materialProduct,
+      );
+      dao.material_product = createdMaterialProduct.map((mp) =>
+        mp.emptyNested(),
+      );
+    }
+
+    if (hasSubProductUpdate) {
+      dao.sub_products = mappedSubProducts;
+    }
+
+    const newProduct: Product = await this.productRepository.save({
       ...product,
       ...dao,
-      material_product: materialProduct,
-      sub_products: mappedSubProducts,
     });
-
-    await this.materialProductRepository.save(materialProduct);
 
     return newProduct;
   }

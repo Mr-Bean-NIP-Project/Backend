@@ -49,7 +49,6 @@ export class MaterialProduct {
   @ManyToOne(() => Product, (prod) => prod.id, {
     onDelete: 'CASCADE',
     onUpdate: 'CASCADE',
-    eager: true,
   })
   @JoinColumn({ name: PRODUCT_ID })
   product?: Product;
@@ -59,17 +58,24 @@ export class MaterialProduct {
   @AfterUpdate()
   initializeArrays() {
     // we wanna init arrays as empty array if nothing is tagged to it
-    if (!this.product.material_product) this.product.material_product = [];
-    if (!this.product.sub_products) this.product.sub_products = [];
-    if (!this.material.material_product) this.material.material_product = [];
+    if (this.product) {
+      if (!this.product.material_product) this.product.material_product = [];
+      if (!this.product.sub_products) this.product.sub_products = [];
+    }
+    if (this.material) {
+      if (!this.material.material_product) this.material.material_product = [];
+    }
+
+    return this;
   }
 
   emptyNested() {
     // for material products, we don't need to care about their
     // corresponding product/material tags. We just want
     // their details
-    this.product.material_product = [];
-    this.product.sub_products = [];
+    delete this.product; // this is repeated info
     this.material.material_product = [];
+
+    return this;
   }
 }

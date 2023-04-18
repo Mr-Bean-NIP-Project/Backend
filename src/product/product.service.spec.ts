@@ -410,4 +410,73 @@ describe('ProductService', () => {
     expect(updatedProductNoMpNoSubProduct).toEqual(p2NoMpNoSubProduct);
     expect(updatedProduct).toEqual(productInDb);
   });
+
+  it('should update successfully without wiping previous subproduct', async () => {
+    const dto1: CreateProductDto = {
+      name: 'p1',
+      serving_size: 10,
+      serving_unit: SERVING_UNIT.ML,
+      serving_per_package: 1,
+      material_id_and_quantity: [],
+      sub_product_ids: [],
+    };
+    const p1 = await productService.create(dto1);
+
+    const dto2: CreateProductDto = {
+      name: 'p2',
+      serving_size: 10,
+      serving_unit: SERVING_UNIT.ML,
+      serving_per_package: 1,
+      material_id_and_quantity: [],
+      sub_product_ids: [p1.id],
+    };
+    const p2 = await productService.create(dto2);
+
+    const updateDto: UpdateProductDto = {
+      name: 'p3',
+    };
+    const updatedProduct = await productService.update(p2.id, updateDto);
+    const productInDb = await productService.findOne(updatedProduct.id);
+
+    expect(updatedProduct).toEqual(productInDb);
+
+    // also need to check if sub_product ids are unchanged
+    expect(updatedProduct.sub_products).toEqual(p2.sub_products);
+    expect(productInDb.sub_products).toEqual(p2.sub_products);
+  });
+
+  it('should update successfully without wiping previous material', async () => {
+    const createdSupplier = await supplierService.create({ name: 'NTUC' });
+    const createdMaterial = await materialService.create({
+      name: 'mat1',
+      supplier_id: createdSupplier.id,
+    });
+
+    const dto1: CreateProductDto = {
+      name: 'p1',
+      serving_size: 10,
+      serving_unit: SERVING_UNIT.ML,
+      serving_per_package: 1,
+      material_id_and_quantity: [
+        {
+          material_id: createdMaterial.id,
+          quantity: 1,
+        },
+      ],
+      sub_product_ids: [],
+    };
+    const p1 = await productService.create(dto1);
+
+    const updateDto: UpdateProductDto = {
+      name: 'p2',
+    };
+    const updatedProduct = await productService.update(p1.id, updateDto);
+    const productInDb = await productService.findOne(updatedProduct.id);
+
+    expect(updatedProduct).toEqual(productInDb);
+
+    // also need to check if material_products are unchanged
+    expect(updatedProduct.material_product).toEqual(p1.material_product);
+    expect(productInDb.material_product).toEqual(p1.material_product);
+  });
 });
