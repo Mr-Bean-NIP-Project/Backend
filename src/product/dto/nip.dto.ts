@@ -95,7 +95,7 @@ export class Nutrition {
   }
 
 
-  toString(): Nutrition {
+  stringify(): Nutrition {
     this.energy = Big(this.energy).toFixed(NUMBER_OF_DP.energy);
     this.protein = Big(this.protein).toFixed(NUMBER_OF_DP.protein);
     this.total_fat = Big(this.total_fat).toFixed(NUMBER_OF_DP.total_fat);
@@ -112,17 +112,7 @@ export class Nutrition {
 
 export function GET_EMPTY_NUTRITION(): Nutrition {
   const n: Nutrition = new Nutrition();
-  n.energy = Number(0).toFixed(NUMBER_OF_DP.energy);
-  n.protein = Number(0).toFixed(NUMBER_OF_DP.protein);
-  n.total_fat = Number(0).toFixed(NUMBER_OF_DP.total_fat);
-  n.saturated_fat = Number(0).toFixed(NUMBER_OF_DP.saturated_fat);
-  n.trans_fat = Number(0).toFixed(NUMBER_OF_DP.trans_fat);
-  n.cholesterol = Number(0).toFixed(NUMBER_OF_DP.cholesterol);
-  n.carbohydrate = Number(0).toFixed(NUMBER_OF_DP.carbohydrate);
-  n.sugars = Number(0).toFixed(NUMBER_OF_DP.sugars);
-  n.dietary_fibre = Number(0).toFixed(NUMBER_OF_DP.dietary_fibre);
-  n.sodium = Number(0).toFixed(NUMBER_OF_DP.sodium);
-  return n;
+  return n.stringify();
 }
 
 export class NipDto {

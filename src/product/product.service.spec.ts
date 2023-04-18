@@ -832,12 +832,12 @@ describe('ProductService', () => {
     expect(nip.serving_size).toEqual(p1.serving_size);
     expect(nip.serving_unit).toEqual(p1.serving_unit);
     expect(nip.serving_per_package).toEqual(p1.serving_per_package);
-    expect(nip.per_serving).toEqual(expectedNutritionPerServing.toString());
+    expect(nip.per_serving).toEqual(expectedNutritionPerServing.stringify());
     expect(nip.per_hundred).toEqual(
       expectedNutritionPerServing
         .divide(nip.serving_size)
         .times(100)
-        .toString(),
+        .stringify(),
     );
   });
 
@@ -883,12 +883,12 @@ describe('ProductService', () => {
     expect(nip.serving_size).toEqual(p1.serving_size);
     expect(nip.serving_unit).toEqual(p1.serving_unit);
     expect(nip.serving_per_package).toEqual(p1.serving_per_package);
-    expect(nip.per_serving).toEqual(expectedNutritionPerServing.toString());
+    expect(nip.per_serving).toEqual(expectedNutritionPerServing.stringify());
     expect(nip.per_hundred).toEqual(
       expectedNutritionPerServing
         .divide(nip.serving_size)
         .times(100)
-        .toString(),
+        .stringify(),
     );
   });
 });
