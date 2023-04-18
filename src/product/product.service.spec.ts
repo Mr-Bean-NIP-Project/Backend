@@ -70,9 +70,6 @@ describe('ProductService', () => {
     const product1InDb = await productService.findOne(createdProduct1.id);
     const product2InDb = await productService.findOne(createdProduct2.id);
 
-    // to pass tests, it doesn't allow init of array if nth is tagged to it
-    product2InDb.sub_products[0].material_product = [];
-    product2InDb.sub_products[0].sub_products = [];
     expect(createdProduct1).toEqual(product1InDb);
     expect(createdProduct2).toEqual(product2InDb);
   });
@@ -104,7 +101,46 @@ describe('ProductService', () => {
     const createdProduct1 = await productService.create(dto1);
 
     const product1InDb = await productService.findOne(createdProduct1.id);
-    product1InDb.material_product[0].product.sub_products = []; // so testcase passses
     expect(createdProduct1).toEqual(product1InDb);
+  });
+
+  it('should create 1 product with material and subproduct', async () => {
+    const supplierDto: CreateSupplierDto = {
+      name: 'sup1',
+    };
+    const createdSupplier = await supplierService.create(supplierDto);
+    const materialDto: CreateMaterialDto = {
+      name: 'mat1',
+      supplier_id: createdSupplier.id,
+    };
+    const createdMaterial = await materialService.create(materialDto);
+
+    const dto1: CreateProductDto = {
+      name: 'p1',
+      serving_size: 10,
+      serving_unit: SERVING_UNIT.ML,
+      serving_per_package: 1,
+      material_id_and_quantity: [
+        {
+          material_id: createdMaterial.id,
+          quantity: 1,
+        },
+      ],
+      sub_product_ids: [],
+    };
+    const createdProduct1 = await productService.create(dto1);
+
+    const dto2: CreateProductDto = {
+      ...dto1,
+      name: 'p2',
+      sub_product_ids: [createdProduct1.id],
+    };
+    const createdProduct2 = await productService.create(dto2);
+
+    const product1InDb = await productService.findOne(createdProduct1.id);
+    const product2InDb = await productService.findOne(createdProduct2.id);
+
+    expect(createdProduct1).toEqual(product1InDb);
+    expect(createdProduct2).toEqual(product2InDb);
   });
 });

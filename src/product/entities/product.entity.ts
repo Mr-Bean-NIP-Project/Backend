@@ -1,4 +1,7 @@
 import {
+  AfterInsert,
+  AfterLoad,
+  AfterUpdate,
   Column,
   CreateDateColumn,
   Entity,
@@ -54,4 +57,18 @@ export class Product {
   @OneToMany(() => MaterialProduct, (mp) => mp.product)
   @JoinColumn({ name: 'product_id' })
   material_product: MaterialProduct[];
+
+  @AfterLoad()
+  @AfterInsert()
+  @AfterUpdate()
+  initializeArrays() {
+    // we wanna init arrays as empty array if nothing is tagged to it
+    if (!this.sub_products) this.sub_products = [];
+    if (!this.material_product) this.material_product = [];
+  }
+
+  emptySubProductAndMaterialProduct() {
+    this.material_product = [];
+    this.sub_products = [];
+  }
 }

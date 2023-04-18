@@ -5,16 +5,16 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { Transactional } from 'typeorm-transactional';
+import { Material } from '../material/entities/material.entity';
+import { MaterialService } from '../material/material.service';
 import {
   CreateProductDto,
   MaterialIdAndQuantity,
 } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
-import { Product } from './entities/product.entity';
-import { MaterialService } from '../material/material.service';
-import { Material } from '../material/entities/material.entity';
 import { MaterialProduct } from './entities/material_product.entity';
-import { Transactional } from 'typeorm-transactional';
+import { Product } from './entities/product.entity';
 
 @Injectable()
 export class ProductService {
@@ -80,7 +80,19 @@ export class ProductService {
       materialProduct,
     );
 
-    return { ...product, material_product: createdMaterialProduct };
+    return {
+      ...product,
+      sub_products: mappedSubProducts.map((sp) => {
+        // remove nested information to compact
+        sp.emptySubProductAndMaterialProduct();
+        return sp;
+      }),
+      material_product: createdMaterialProduct.map((mp) => {
+        // remove nested information to compact
+        mp.emptyNested();
+        return mp;
+      }),
+    };
   }
 
   @Transactional()
@@ -88,7 +100,10 @@ export class ProductService {
     return await this.productRepository.find({
       relations: {
         sub_products: true,
-        material_product: true,
+        material_product: {
+          material: true,
+          product: true,
+        },
       },
     });
   }
@@ -100,6 +115,7 @@ export class ProductService {
         sub_products: true,
         material_product: {
           material: true,
+          product: true,
         },
       },
       where: { id },
@@ -273,13 +289,13 @@ export class ProductService {
     for (let i = 0; i < mappedMaterials.length; i++) {
       const material = mappedMaterials[i];
       const material_quantity = materialIdAndQuantities[i].quantity;
-      const material_product_dao: MaterialProduct = {
-        material,
-        product,
-        material_quantity,
-        product_id: product.id,
-        material_id: material.id,
-      };
+      const material_product_dao: MaterialProduct = new MaterialProduct();
+      material_product_dao.material = material;
+      material_product_dao.product = product;
+      material_product_dao.material_quantity = material_quantity;
+      material_product_dao.product_id = product.id;
+      material_product_dao.material_id = material.id;
+
       material_product_daos.push(material_product_dao);
     }
     return material_product_daos;

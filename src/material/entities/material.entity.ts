@@ -7,7 +7,7 @@ import {
   OneToMany,
   PrimaryGeneratedColumn,
   Unique,
-  UpdateDateColumn
+  UpdateDateColumn,
 } from 'typeorm';
 import { MaterialProduct } from '../../product/entities/material_product.entity';
 import { Supplier } from '../../supplier/entities/supplier.entity';
@@ -67,5 +67,5 @@ export class Material {
 
   @OneToMany(() => MaterialProduct, (mp) => mp.material)
   @JoinColumn({ name: 'material_id' })
-  materialProduct: MaterialProduct[];
+  material_product: MaterialProduct[];
 }

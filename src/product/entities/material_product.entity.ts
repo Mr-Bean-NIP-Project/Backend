@@ -1,11 +1,13 @@
 import {
+  AfterInsert,
+  AfterLoad,
+  AfterUpdate,
   Column,
   CreateDateColumn,
   Entity,
   Index,
   JoinColumn,
   ManyToOne,
-  PrimaryColumn,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -26,7 +28,7 @@ export class MaterialProduct {
 
   @Column()
   product_id?: number;
-  
+
   @Column()
   material_quantity: number;
 
@@ -51,4 +53,23 @@ export class MaterialProduct {
   })
   @JoinColumn({ name: PRODUCT_ID })
   product?: Product;
+
+  @AfterLoad()
+  @AfterInsert()
+  @AfterUpdate()
+  initializeArrays() {
+    // we wanna init arrays as empty array if nothing is tagged to it
+    if (!this.product.material_product) this.product.material_product = [];
+    if (!this.product.sub_products) this.product.sub_products = [];
+    if (!this.material.material_product) this.material.material_product = [];
+  }
+
+  emptyNested() {
+    // for material products, we don't need to care about their
+    // corresponding product/material tags. We just want
+    // their details
+    this.product.material_product = [];
+    this.product.sub_products = [];
+    this.material.material_product = [];
+  }
 }
