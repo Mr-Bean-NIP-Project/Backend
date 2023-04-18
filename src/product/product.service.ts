@@ -16,8 +16,7 @@ import { UpdateProductDto } from './dto/update-product.dto';
 import { MaterialProduct } from './entities/material_product.entity';
 import { Product } from './entities/product.entity';
 import { NUMBER_OF_DP, NipDto, Nutrition } from './dto/nip.dto';
-import { sumArrayOfObjects } from '../common/utils';
-import Big from 'big.js';
+import Big, { BigSource } from 'big.js';
 
 @Injectable()
 export class ProductService {
@@ -238,16 +237,17 @@ export class ProductService {
   async getNip(id: number): Promise<NipDto> {
     const product: Product = await this.findOneOrThrow(id);
 
-    const subProductNutritions: Nutrition<Big>[] = product.sub_products.map(
+    const subProductNutritions: Nutrition<BigSource>[] = product.sub_products.map(
       (p) => this.calculateNutrition(p.material_product),
     );
-    const materialNutrition: Nutrition<Big> = this.calculateNutrition(
+    const materialNutrition: Nutrition<BigSource> = this.calculateNutrition(
       product.material_product,
     );
 
-    const nutritionPerServing: Nutrition<Big> = sumArrayOfObjects<
-      Nutrition<Big>
-    >([materialNutrition, ...subProductNutritions]);
+    const nutritionPerServing: Nutrition<BigSource> = this.sumArrayOfObjects([
+      materialNutrition,
+      ...subProductNutritions,
+    ]);
 
     return {
       name: product.name,
@@ -263,8 +263,22 @@ export class ProductService {
     };
   }
 
+  private sumArrayOfObjects(
+    objects: Array<Nutrition<BigSource>>,
+  ): Nutrition<BigSource> {
+    if (!objects || objects.length == 0) return {} as Nutrition<BigSource>;
+    return objects.reduce((a, obj) => {
+      Object.entries(obj).forEach(([key, val]) => {
+        a[key] = Big(a[key] || 0).add(Big(val));
+      });
+      return a;
+    });
+  }
+
   // given a product's tagged materials, calcualte the nutrition quantity
-  calculateNutrition(materials: MaterialProduct[] = []): Nutrition<Big> {
+  private calculateNutrition(
+    materials: MaterialProduct[] = [],
+  ): Nutrition<BigSource> {
     const arrayOfMaterials = materials
       .map((m) => m.material)
       .map((m) => {
@@ -279,11 +293,11 @@ export class ProductService {
         } = m; // strip unused fields
         return dao;
       });
-    return sumArrayOfObjects<Nutrition<Big>>(arrayOfMaterials);
+    return this.sumArrayOfObjects(arrayOfMaterials);
   }
 
-  convertToPerHundred(
-    per_serving: Nutrition<Big>,
+  private convertToPerHundred(
+    per_serving: Nutrition<BigSource>,
     serving_size: number,
   ): Nutrition<string> {
     const servingSize = Big(serving_size);
@@ -302,8 +316,8 @@ export class ProductService {
     return this.convertNutritionOfBigToNutrionOfString(result);
   }
 
-  convertNutritionOfBigToNutrionOfString(
-    nut: Nutrition<Big | string>,
+  private convertNutritionOfBigToNutrionOfString(
+    nut: Nutrition<BigSource>,
   ): Nutrition<string> {
     if (!nut) return {} as Nutrition<string>;
     // toFixed is number of DP
@@ -321,7 +335,7 @@ export class ProductService {
     };
   }
 
-  async getMissingMaterialIds(
+  private async getMissingMaterialIds(
     materialIds: number[] = [],
     mappedMaterials: Material[] = [],
   ): Promise<number[]> {
@@ -337,7 +351,7 @@ export class ProductService {
     return missingMaterialIds;
   }
 
-  async getMissingProductIds(
+  private async getMissingProductIds(
     subProductIds: number[] = [],
     mappedSubProducts: Product[] = [],
   ): Promise<number[]> {
@@ -353,7 +367,7 @@ export class ProductService {
     return missingProductIds;
   }
 
-  async removePreviousMaterialProduct(
+  private async removePreviousMaterialProduct(
     product: Product,
   ): Promise<MaterialProduct[]> {
     if (!product) return Promise.resolve([]);
@@ -368,7 +382,7 @@ export class ProductService {
     );
   }
 
-  async getMaterialProduct(
+  private async getMaterialProduct(
     product: Product,
     materialIdAndQuantities: MaterialIdAndQuantity[] = [],
     mappedMaterials: Material[] = [],
@@ -394,7 +408,7 @@ export class ProductService {
     return material_product_daos;
   }
 
-  async checkNoSameName(dto: UpdateProductDto) {
+  private async checkNoSameName(dto: UpdateProductDto) {
     if (!dto || !dto.name) return;
     const sameNameProduct = await this.findOneByName(dto.name);
     if (sameNameProduct) {
@@ -404,7 +418,7 @@ export class ProductService {
     }
   }
 
-  async findOneOrThrow(id: number) {
+  private async findOneOrThrow(id: number) {
     const product = await this.findOne(id);
     if (!product) {
       throw new NotFoundException('Product not found!');
