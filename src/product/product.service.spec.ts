@@ -356,4 +356,58 @@ describe('ProductService', () => {
     expect(p1NoMp).toEqual(p2NoMp);
     expect(p2).toEqual(productInDb);
   });
+
+  it('should update successfully with material and subproduct', async () => {
+    const createdSupplier = await supplierService.create({ name: 'NTUC' });
+    const createdMaterial = await materialService.create({
+      name: 'mat1',
+      supplier_id: createdSupplier.id,
+    });
+
+    const dto1: CreateProductDto = {
+      name: 'p1',
+      serving_size: 10,
+      serving_unit: SERVING_UNIT.ML,
+      serving_per_package: 1,
+      material_id_and_quantity: [],
+      sub_product_ids: [],
+    };
+    const p1 = await productService.create(dto1);
+
+    const dto2: CreateProductDto = {
+      name: 'p2',
+      serving_size: 10,
+      serving_unit: SERVING_UNIT.ML,
+      serving_per_package: 1,
+      material_id_and_quantity: [],
+      sub_product_ids: [],
+    };
+    const p2 = await productService.create(dto2);
+
+    const updateDto: UpdateProductDto = {
+      material_id_and_quantity: [
+        {
+          material_id: createdMaterial.id,
+          quantity: 2,
+        },
+      ],
+      sub_product_ids: [p1.id],
+    };
+    const updatedProduct = await productService.update(p2.id, updateDto);
+
+    const productInDb = await productService.findOne(updatedProduct.id);
+    const {
+      material_product: mp1,
+      sub_products: sp1,
+      ...updatedProductNoMpNoSubProduct
+    } = updatedProduct;
+    const {
+      material_product: mp2,
+      sub_products: sp2,
+      ...p2NoMpNoSubProduct
+    } = p2;
+    // check if all other fields are the same
+    expect(updatedProductNoMpNoSubProduct).toEqual(p2NoMpNoSubProduct);
+    expect(updatedProduct).toEqual(productInDb);
+  });
 });
