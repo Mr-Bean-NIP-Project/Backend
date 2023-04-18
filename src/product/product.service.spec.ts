@@ -11,6 +11,7 @@ import { CreateSupplierDto } from '../supplier/dto/create-supplier.dto';
 import { CreateMaterialDto } from '../material/dto/create-material.dto';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { UpdateProductDto } from './dto/update-product.dto';
+import { ProductModule } from './product.module';
 
 describe('ProductService', () => {
   let productService: ProductService;
@@ -23,7 +24,7 @@ describe('ProductService', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      imports: [...TYPEORM_TEST_IMPORTS(), MaterialModule],
+      imports: [...TYPEORM_TEST_IMPORTS(), MaterialModule, ProductModule],
       providers: [ProductService, MaterialService, SupplierService],
     }).compile();
 
@@ -621,6 +622,67 @@ describe('ProductService', () => {
     // also need to check if material_products are unchanged
     expect(updatedProduct.material_product).not.toEqual(p1.material_product);
     expect(productInDb.material_product).not.toEqual(p1.material_product);
+  });
+
+  it('should fail to update a product that does not exist', async () => {
+    const t = async () => {
+      return await productService.update(100, {});
+    };
+
+    await expect(t).rejects.toThrowError(NotFoundException);
+  });
+
+  it('should fail to update a product with a material that does not exist', async () => {
+    const dto1: CreateProductDto = {
+      name: 'p1',
+      serving_size: 10,
+      serving_unit: SERVING_UNIT.ML,
+      serving_per_package: 1,
+    };
+    const p1 = await productService.create(dto1);
+
+    const updateDto: UpdateProductDto = {
+      material_id_and_quantity: [
+        {
+          material_id: 1, // doesnt exist
+          quantity: 1,
+        },
+      ],
+    };
+
+    const t = async () => {
+      return await productService.update(p1.id, updateDto);
+    };
+
+    await expect(t).rejects.toThrowError(BadRequestException);
+  });
+
+  it('should fail to update a product with a subproduct that does not exist', async () => {
+    const dto1: CreateProductDto = {
+      name: 'p1',
+      serving_size: 10,
+      serving_unit: SERVING_UNIT.ML,
+      serving_per_package: 1,
+    };
+    const p1 = await productService.create(dto1);
+
+    const updateDto: UpdateProductDto = {
+      sub_product_ids: [10], // doesnt exist
+    };
+
+    const t = async () => {
+      return await productService.update(p1.id, updateDto);
+    };
+
+    await expect(t).rejects.toThrowError(BadRequestException);
+  });
+
+  it('should fail to update a product with a material that does not exist', async () => {
+    const t = async () => {
+      return await productService.remove(1);
+    };
+
+    await expect(t).rejects.toThrowError(NotFoundException);
   });
 
   it('should fail to delete a product that does not exist', async () => {

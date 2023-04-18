@@ -29,7 +29,7 @@ export class ProductService {
   @Transactional()
   async create(createProductDto: CreateProductDto) {
     await this.checkNoSameName(createProductDto);
-    const materialIds = createProductDto.material_id_and_quantity.map(
+    const materialIds = (createProductDto.material_id_and_quantity ?? []).map(
       (x) => x.material_id,
     );
     const mappedMaterials = await Promise.all(
@@ -47,7 +47,7 @@ export class ProductService {
       );
     }
 
-    const subProductIds = createProductDto.sub_product_ids;
+    const subProductIds = createProductDto.sub_product_ids ?? [];
     const mappedSubProducts = await Promise.all(
       subProductIds.map(async (mat) => {
         return await this.findOne(mat);
@@ -239,17 +239,10 @@ export class ProductService {
   }
 
   async getMissingMaterialIds(
-    materialIds: number[],
-    mappedMaterials?: Material[],
+    materialIds: number[] = [],
+    mappedMaterials: Material[] = [],
   ): Promise<number[]> {
     if (!materialIds || materialIds.length == 0) return [];
-    if (!mappedMaterials) {
-      mappedMaterials = await Promise.all(
-        materialIds.map(async (mat) => {
-          return await this.materialService.findOne(mat);
-        }),
-      );
-    }
     const missingMaterialIds = mappedMaterials
       .map((mat, index) => {
         return [mat, index];
@@ -262,17 +255,10 @@ export class ProductService {
   }
 
   async getMissingProductIds(
-    subProductIds: number[],
-    mappedSubProducts?: Product[],
+    subProductIds: number[] = [],
+    mappedSubProducts: Product[] = [],
   ): Promise<number[]> {
     if (!subProductIds || subProductIds.length == 0) return [];
-    if (!mappedSubProducts) {
-      mappedSubProducts = await Promise.all(
-        subProductIds.map(async (mat) => {
-          return await this.findOne(mat);
-        }),
-      );
-    }
 
     const missingProductIds = mappedSubProducts
       .map((prod, index) => {
@@ -301,18 +287,11 @@ export class ProductService {
 
   async getMaterialProduct(
     product: Product,
-    materialIdAndQuantities: MaterialIdAndQuantity[],
-    mappedMaterials?: Material[],
+    materialIdAndQuantities: MaterialIdAndQuantity[] = [],
+    mappedMaterials: Material[] = [],
   ): Promise<MaterialProduct[]> {
-    if (!product || materialIdAndQuantities.length == 0)
+    if (!product || materialIdAndQuantities.length == 0) {
       return Promise.resolve([]);
-    if (!mappedMaterials) {
-      const materialIds = materialIdAndQuantities.map((x) => x[0]);
-      mappedMaterials = await Promise.all(
-        materialIds.map(async (mat) => {
-          return await this.materialService.findOne(mat);
-        }),
-      );
     }
 
     // then we insert here
