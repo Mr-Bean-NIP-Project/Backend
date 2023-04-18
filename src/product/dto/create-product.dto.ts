@@ -1,10 +1,11 @@
 import {
-    IsArray,
-    IsEnum,
-    IsNotEmpty,
-    IsNumber,
-    IsString,
-    Min
+  IsArray,
+  IsEnum,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+  Min,
 } from 'class-validator';
 import { SERVING_UNIT } from '../entities/product.entity';
 
@@ -31,8 +32,10 @@ export class CreateProductDto {
   serving_per_package: number;
 
   @IsArray()
+  @IsOptional()
   sub_product_ids?: number[];
 
   @IsArray()
+  @IsOptional()
   material_id_and_quantity?: MaterialIdAndQuantity[];
 }
