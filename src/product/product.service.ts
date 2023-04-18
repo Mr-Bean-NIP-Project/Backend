@@ -15,6 +15,8 @@ import {
 import { UpdateProductDto } from './dto/update-product.dto';
 import { MaterialProduct } from './entities/material_product.entity';
 import { Product } from './entities/product.entity';
+import { NipDto, Nutrition } from './dto/nip.dto';
+import { sumArrayOfObjects } from '../common/utils';
 
 @Injectable()
 export class ProductService {
@@ -136,10 +138,7 @@ export class ProductService {
       'material_id_and_quantity' in updateProductDto;
 
     await this.checkNoSameName(updateProductDto);
-    const product = await this.findOne(id);
-    if (!product) {
-      throw new NotFoundException('Product not found!');
-    }
+    const product = await this.findOneOrThrow(id);
     if (
       hasSubProductUpdate &&
       updateProductDto.sub_product_ids.includes(product.id)
@@ -214,10 +213,7 @@ export class ProductService {
 
   @Transactional()
   async remove(id: number) {
-    const product = await this.findOne(id);
-    if (!product) {
-      throw new NotFoundException('Product not found!');
-    }
+    const product = await this.findOneOrThrow(id);
     const parentProducts = await this.productRepository.find({
       relations: {
         sub_products: true,
@@ -236,6 +232,58 @@ export class ProductService {
       );
     }
     return await this.productRepository.remove(product);
+  }
+
+  async getNip(id: number): Promise<NipDto> {
+    const product: Product = await this.findOneOrThrow(id);
+
+    const subProductNutritions: Nutrition[] = product.sub_products.map((p) =>
+      this.calculateNutrition(p.material_product),
+    );
+    const materialNutrition: Nutrition = this.calculateNutrition(
+      product.material_product,
+    );
+
+    const nutritionPerServing: Nutrition = sumArrayOfObjects<Nutrition>([
+      materialNutrition,
+      ...subProductNutritions,
+    ]);
+
+    return {
+      name: product.name,
+      serving_size: product.serving_size,
+      serving_unit: product.serving_unit,
+      serving_per_package: product.serving_per_package,
+      per_serving: nutritionPerServing,
+      per_hundred: this.convertToPerHundred(
+        nutritionPerServing,
+        product.serving_size,
+      ),
+    };
+  }
+
+  // given a product's tagged materials, calcualte the nutrition quantity
+  calculateNutrition(materials: MaterialProduct[] = []): Nutrition {
+    const arrayOfMaterials = materials
+      .map((m) => m.material)
+      .map((m) => {
+        const {
+          id,
+          name,
+          created_at,
+          updated_at,
+          supplier,
+          material_product,
+          ...dao
+        } = m; // strip unused fields
+        return dao;
+      }) as Nutrition[];
+    return sumArrayOfObjects<Nutrition>(arrayOfMaterials);
+  }
+
+  convertToPerHundred(per_serving: Nutrition, serving_size: number): Nutrition {
+    // todo
+    return per_serving;
   }
 
   async getMissingMaterialIds(
@@ -319,5 +367,13 @@ export class ProductService {
         `Product with id: ${sameNameProduct.id} has the same name!`,
       );
     }
+  }
+
+  async findOneOrThrow(id: number) {
+    const product = await this.findOne(id);
+    if (!product) {
+      throw new NotFoundException('Product not found!');
+    }
+    return product;
   }
 }
