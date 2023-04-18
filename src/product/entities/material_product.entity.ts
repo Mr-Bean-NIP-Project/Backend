@@ -62,9 +62,6 @@ export class MaterialProduct {
       if (!this.product.material_product) this.product.material_product = [];
       if (!this.product.sub_products) this.product.sub_products = [];
     }
-    if (this.material) {
-      if (!this.material.material_product) this.material.material_product = [];
-    }
 
     return this;
   }
@@ -74,7 +71,6 @@ export class MaterialProduct {
     // corresponding product/material tags. We just want
     // their details
     delete this.product; // this is repeated info
-    this.material.material_product = [];
 
     return this;
   }
