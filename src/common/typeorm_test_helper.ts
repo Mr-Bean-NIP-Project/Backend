@@ -23,9 +23,6 @@ export function TYPEORM_TEST_IMPORTS() {
         return dataSourceOptions;
       },
       async dataSourceFactory(options) {
-        if (!options) {
-          throw new Error('Invalid options passed');
-        }
         if (!addedTransactionalDataSourceBefore) {
           addedTransactionalDataSourceBefore = true;
           return addTransactionalDataSource(new DataSource(options));

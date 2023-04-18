@@ -40,6 +40,17 @@ describe('MaterialService', () => {
     expect(createdMaterial as Material).toEqual(materialInDb);
   });
 
+  it('should fail to create material with non-existent supplier', async () => {
+    const t = async () => {
+      return await materialService.create({
+        name: 'mat1',
+        supplier_id: 1,
+      });
+    };
+
+    await expect(t).rejects.toThrowError(NotFoundException);
+  });
+
   it('should get all materials', async () => {
     const createdSupplier = await supplierService.create({ name: 'NTUC' });
     const createdMaterial1 = await materialService.create({
@@ -93,6 +104,22 @@ describe('MaterialService', () => {
   it('should fail to update non-existent material', async () => {
     const t = async () => {
       return await materialService.update(1, { name: 'mat3' });
+    };
+
+    await expect(t).rejects.toThrowError(NotFoundException);
+  });
+
+  it('should fail to update material with non-existent supplier', async () => {
+    const createdSupplier1 = await supplierService.create({ name: 'NTUC1' });
+    const createdMaterial = await materialService.create({
+      name: 'mat1',
+      supplier_id: createdSupplier1.id,
+    });
+
+    const t = async () => {
+      return await materialService.update(createdMaterial.id, {
+        supplier_id: 203123, // does not exist
+      });
     };
 
     await expect(t).rejects.toThrowError(NotFoundException);

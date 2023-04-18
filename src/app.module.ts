@@ -24,10 +24,6 @@ import { DataSource } from 'typeorm';
         return dataSourceOptions;
       },
       async dataSourceFactory(options) {
-        if (!options) {
-          throw new Error('Invalid options passed');
-        }
-
         return addTransactionalDataSource(new DataSource(options));
       },
     }),
