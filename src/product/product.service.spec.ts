@@ -800,7 +800,7 @@ describe('ProductService', () => {
     expect(nip.per_hundred).toEqual(GET_EMPTY_NUTRITION());
   });
 
-  it('should return empty NIP for product tagged to 1 material', async () => {
+  it('should return NIP for product tagged to 1 material', async () => {
     const createdSupplier = await supplierService.create({ name: 'NTUC' });
     const createdMaterial = await materialService.create({
       name: 'mat1',
@@ -841,7 +841,7 @@ describe('ProductService', () => {
     );
   });
 
-  it('should return empty NIP for product tagged to many material', async () => {
+  it('should return NIP for product tagged to many material', async () => {
     const createdSupplier = await supplierService.create({ name: 'NTUC' });
     const createdMaterial1 = await materialService.create({
       name: 'mat1',
