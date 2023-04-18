@@ -15,8 +15,9 @@ import {
 import { UpdateProductDto } from './dto/update-product.dto';
 import { MaterialProduct } from './entities/material_product.entity';
 import { Product } from './entities/product.entity';
-import { NipDto, Nutrition } from './dto/nip.dto';
+import { NUMBER_OF_DP, NipDto, Nutrition } from './dto/nip.dto';
 import { sumArrayOfObjects } from '../common/utils';
+import Big from 'big.js';
 
 @Injectable()
 export class ProductService {
@@ -237,24 +238,24 @@ export class ProductService {
   async getNip(id: number): Promise<NipDto> {
     const product: Product = await this.findOneOrThrow(id);
 
-    const subProductNutritions: Nutrition[] = product.sub_products.map((p) =>
-      this.calculateNutrition(p.material_product),
+    const subProductNutritions: Nutrition<Big>[] = product.sub_products.map(
+      (p) => this.calculateNutrition(p.material_product),
     );
-    const materialNutrition: Nutrition = this.calculateNutrition(
+    const materialNutrition: Nutrition<Big> = this.calculateNutrition(
       product.material_product,
     );
 
-    const nutritionPerServing: Nutrition = sumArrayOfObjects<Nutrition>([
-      materialNutrition,
-      ...subProductNutritions,
-    ]);
+    const nutritionPerServing: Nutrition<Big> = sumArrayOfObjects<
+      Nutrition<Big>
+    >([materialNutrition, ...subProductNutritions]);
 
     return {
       name: product.name,
       serving_size: product.serving_size,
       serving_unit: product.serving_unit,
       serving_per_package: product.serving_per_package,
-      per_serving: nutritionPerServing,
+      per_serving:
+        this.convertNutritionOfBigToNutrionOfString(nutritionPerServing),
       per_hundred: this.convertToPerHundred(
         nutritionPerServing,
         product.serving_size,
@@ -263,7 +264,7 @@ export class ProductService {
   }
 
   // given a product's tagged materials, calcualte the nutrition quantity
-  calculateNutrition(materials: MaterialProduct[] = []): Nutrition {
+  calculateNutrition(materials: MaterialProduct[] = []): Nutrition<Big> {
     const arrayOfMaterials = materials
       .map((m) => m.material)
       .map((m) => {
@@ -277,13 +278,47 @@ export class ProductService {
           ...dao
         } = m; // strip unused fields
         return dao;
-      }) as Nutrition[];
-    return sumArrayOfObjects<Nutrition>(arrayOfMaterials);
+      });
+    return sumArrayOfObjects<Nutrition<Big>>(arrayOfMaterials);
   }
 
-  convertToPerHundred(per_serving: Nutrition, serving_size: number): Nutrition {
-    // todo
-    return per_serving;
+  convertToPerHundred(
+    per_serving: Nutrition<Big>,
+    serving_size: number,
+  ): Nutrition<string> {
+    const servingSize = Big(serving_size);
+    const result = {
+      energy: Big(per_serving.energy).div(servingSize),
+      protein: Big(per_serving.protein).div(servingSize),
+      total_fat: Big(per_serving.total_fat).div(servingSize),
+      saturated_fat: Big(per_serving.saturated_fat).div(servingSize),
+      trans_fat: Big(per_serving.trans_fat).div(servingSize),
+      cholesterol: Big(per_serving.cholesterol).div(servingSize),
+      carbohydrate: Big(per_serving.carbohydrate).div(servingSize),
+      sugars: Big(per_serving.sugars).div(servingSize),
+      dietary_fibre: Big(per_serving.dietary_fibre).div(servingSize),
+      sodium: Big(per_serving.sodium).div(servingSize),
+    };
+    return this.convertNutritionOfBigToNutrionOfString(result);
+  }
+
+  convertNutritionOfBigToNutrionOfString(
+    nut: Nutrition<Big | string>,
+  ): Nutrition<string> {
+    if (!nut) return {} as Nutrition<string>;
+    // toFixed is number of DP
+    return {
+      energy: Big(nut.energy).toFixed(NUMBER_OF_DP.energy),
+      protein: Big(nut.protein).toFixed(NUMBER_OF_DP.protein),
+      total_fat: Big(nut.total_fat).toFixed(NUMBER_OF_DP.total_fat),
+      saturated_fat: Big(nut.saturated_fat).toFixed(NUMBER_OF_DP.saturated_fat),
+      trans_fat: Big(nut.trans_fat).toFixed(NUMBER_OF_DP.trans_fat),
+      cholesterol: Big(nut.cholesterol).toFixed(NUMBER_OF_DP.cholesterol),
+      carbohydrate: Big(nut.carbohydrate).toFixed(NUMBER_OF_DP.carbohydrate),
+      sugars: Big(nut.sugars).toFixed(NUMBER_OF_DP.sugars),
+      dietary_fibre: Big(nut.dietary_fibre).toFixed(NUMBER_OF_DP.dietary_fibre),
+      sodium: Big(nut.sodium).toFixed(NUMBER_OF_DP.sodium),
+    };
   }
 
   async getMissingMaterialIds(
