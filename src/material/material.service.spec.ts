@@ -132,4 +132,23 @@ describe('MaterialService', () => {
 
     await expect(t).rejects.toThrowError(BadRequestException);
   });
+
+  it('should prevent the updating to same name', async () => {
+    const createdSupplier = await supplierService.create({ name: 'NTUC' });
+    const dto1: CreateMaterialDto = {
+      name: 'mat1',
+      supplier_id: createdSupplier.id,
+    };
+    const dto2: CreateMaterialDto = {
+      name: 'mat2',
+      supplier_id: createdSupplier.id,
+    };
+    const m1 = await materialService.create(dto1);
+    const m2 = await materialService.create(dto2);
+    const t = async () => {
+      return await materialService.update(m2.id, { name: m1.name });
+    };
+
+    await expect(t).rejects.toThrowError(BadRequestException);
+  });
 });

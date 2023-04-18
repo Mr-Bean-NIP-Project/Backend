@@ -24,12 +24,7 @@ export class SupplierService {
 
   @Transactional()
   async create(createSupplierDto: CreateSupplierDto) {
-    const sameNameSupplier = await this.findOneByName(createSupplierDto.name);
-    if (sameNameSupplier) {
-      throw new BadRequestException(
-        `Supplier with id: ${sameNameSupplier.id} has the same name!`,
-      );
-    }
+    await this.checkNoSameName(createSupplierDto);
     const newSupplier = this.supplierRepository.create(createSupplierDto);
     return await this.supplierRepository.save(newSupplier);
   }
@@ -51,6 +46,7 @@ export class SupplierService {
 
   @Transactional()
   async update(id: number, updateSupplierDto: UpdateSupplierDto) {
+    await this.checkNoSameName(updateSupplierDto);
     const supplier = await this.findOne(id);
     if (!supplier) {
       throw new NotFoundException('Supplier not found!');
@@ -74,5 +70,15 @@ export class SupplierService {
     }
 
     return this.supplierRepository.remove(supplier);
+  }
+
+  async checkNoSameName(dto: UpdateSupplierDto) {
+    if (!dto || !dto.name) return;
+    const sameNameSupplier = await this.findOneByName(dto.name);
+    if (sameNameSupplier) {
+      throw new BadRequestException(
+        `Supplier with id: ${sameNameSupplier.id} has the same name!`,
+      );
+    }
   }
 }

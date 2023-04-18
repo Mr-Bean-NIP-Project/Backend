@@ -110,4 +110,20 @@ describe('SupplierService', () => {
 
     await expect(t).rejects.toThrowError(BadRequestException);
   });
+
+  it('should prevent the updating to same name', async () => {
+    const dto1: CreateSupplierDto = {
+      name: 'NTUC',
+    };
+    const dto2: CreateSupplierDto = {
+      name: 'NTUC2',
+    };
+    const s1 = await supplierService.create(dto1);
+    const s2 = await supplierService.create(dto2);
+    const t = async () => {
+      return await supplierService.update(s2.id, { name: s1.name });
+    };
+
+    await expect(t).rejects.toThrowError(BadRequestException);
+  });
 });

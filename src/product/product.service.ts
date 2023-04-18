@@ -28,12 +28,7 @@ export class ProductService {
 
   @Transactional()
   async create(createProductDto: CreateProductDto) {
-    const sameNameProduct = await this.findOneByName(createProductDto.name);
-    if (sameNameProduct) {
-      throw new BadRequestException(
-        `Product with id: ${sameNameProduct.id} has the same name!`,
-      );
-    }
+    await this.checkNoSameName(createProductDto);
     const materialIds = createProductDto.material_id_and_quantity.map(
       (x) => x.material_id,
     );
@@ -144,6 +139,7 @@ export class ProductService {
 
   @Transactional()
   async update(id: number, updateProductDto: UpdateProductDto) {
+    await this.checkNoSameName(updateProductDto);
     const product = await this.findOne(id);
     if (!product) {
       throw new NotFoundException('Product not found!');
@@ -319,5 +315,15 @@ export class ProductService {
       material_product_daos.push(material_product_dao);
     }
     return material_product_daos;
+  }
+
+  async checkNoSameName(dto: UpdateProductDto) {
+    if (!dto || !dto.name) return;
+    const sameNameProduct = await this.findOneByName(dto.name);
+    if (sameNameProduct) {
+      throw new BadRequestException(
+        `Product with id: ${sameNameProduct.id} has the same name!`,
+      );
+    }
   }
 }

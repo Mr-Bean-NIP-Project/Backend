@@ -30,14 +30,7 @@ export class MaterialService {
     if (!supplier) {
       throw new NotFoundException('Supplier not found!');
     }
-
-    const sameNameMaterial = await this.findOneByName(createMaterialDto.name);
-    if (sameNameMaterial) {
-      throw new BadRequestException(
-        `Material with id: ${sameNameMaterial.id} has the same name!`,
-      );
-    }
-
+    await this.checkNoSameName(createMaterialDto);
     const { supplier_id, ...dao } = createMaterialDto;
     const newMaterial = this.materialRepository.create({ ...dao, supplier });
     return await this.materialRepository.save(newMaterial);
@@ -74,6 +67,8 @@ export class MaterialService {
       throw new NotFoundException('Supplier not found!');
     }
 
+    await this.checkNoSameName(updateMaterialDto);
+
     const { supplier_id, ...dao } = updateMaterialDto;
     return this.materialRepository.save({ ...material, ...dao, supplier });
   }
@@ -96,5 +91,15 @@ export class MaterialService {
         },
       },
     });
+  }
+
+  async checkNoSameName(dto: UpdateMaterialDto) {
+    if (!dto || !dto.name) return;
+    const sameNameMaterial = await this.findOneByName(dto.name);
+    if (sameNameMaterial) {
+      throw new BadRequestException(
+        `Material with id: ${sameNameMaterial.id} has the same name!`,
+      );
+    }
   }
 }

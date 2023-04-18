@@ -167,7 +167,7 @@ describe('ProductService', () => {
     expect(products).toContainEqual(p2);
   });
 
-  it('should prevent creation of same name product', async () => {
+  it('should prevent creation of same name', async () => {
     const dto1: CreateProductDto = {
       name: 'p1',
       serving_size: 10,
@@ -184,6 +184,30 @@ describe('ProductService', () => {
 
     const t = async () => {
       return await productService.create(dto2);
+    };
+
+    await expect(t).rejects.toThrowError(BadRequestException);
+  });
+
+  it('should prevent updating to same name', async () => {
+    const dto1: CreateProductDto = {
+      name: 'p1',
+      serving_size: 10,
+      serving_unit: SERVING_UNIT.ML,
+      serving_per_package: 1,
+      material_id_and_quantity: [],
+      sub_product_ids: [],
+    };
+    const dto2: CreateProductDto = {
+      ...dto1,
+      name: 'p2',
+    };
+
+    const p1 = await productService.create(dto1);
+    const p2 = await productService.create(dto2);
+
+    const t = async () => {
+      return await productService.update(p2.id, { name: p1.name });
     };
 
     await expect(t).rejects.toThrowError(BadRequestException);
