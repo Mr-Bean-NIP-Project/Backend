@@ -7,6 +7,7 @@ import { ProductService } from './product.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { SERVING_UNIT } from './entities/product.entity';
 import { UpdateProductDto } from './dto/update-product.dto';
+import { GET_EMPTY_NUTRITION, NipDto } from './dto/nip.dto';
 
 describe('ProductController', () => {
   let controller: ProductController;
@@ -103,5 +104,27 @@ describe('ProductController', () => {
     );
     const productInDb = await controller.findOne(JSON.stringify(p.id));
     expect(productInDb).toEqual(updatedProduct);
+  });
+
+  it('should fetch nip', async () => {
+    const dto: CreateProductDto = {
+      name: 'p1',
+      serving_size: 10,
+      serving_unit: SERVING_UNIT.ML,
+      serving_per_package: 1,
+    };
+    const p = await controller.create(dto);
+
+    const nip = await controller.getNip(JSON.stringify(p.id));
+    const expectedResult: NipDto = new NipDto();
+    expectedResult.name = p.name;
+    expectedResult.serving_per_package = p.serving_per_package;
+    expectedResult.serving_size = p.serving_size;
+    expectedResult.serving_unit = p.serving_unit;
+    expectedResult.per_hundred =
+      GET_EMPTY_NUTRITION().stringifyAndAppendUnits();
+    expectedResult.per_serving =
+      GET_EMPTY_NUTRITION().stringifyAndAppendUnits();
+    expect(nip).toEqual(expectedResult);
   });
 });

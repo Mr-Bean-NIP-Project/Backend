@@ -44,10 +44,6 @@ export class Nutrition {
   dietary_fibre: BigSource = '0';
   sodium: BigSource = '0';
 
-  static staticCopy(other: Nutrition): Nutrition {
-    return Object.assign(Object.create(Object.getPrototypeOf(other)), other);
-  }
-
   copy(): Nutrition {
     return Object.assign(Object.create(Object.getPrototypeOf(this)), this);
   }
