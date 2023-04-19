@@ -892,7 +892,7 @@ describe('ProductService', () => {
     );
   });
 
-  it('should return NIP for product tagged to 1 subproduct', async () => {
+  it('should return NIP for product tagged to 1 subproduct tagged to 1 material', async () => {
     const createdSupplier = await supplierService.create({ name: 'NTUC' });
     const createdMaterial = await materialService.create({
       name: 'mat1',
@@ -934,6 +934,213 @@ describe('ProductService', () => {
     expect(nip.serving_size).toEqual(p2.serving_size);
     expect(nip.serving_unit).toEqual(p2.serving_unit);
     expect(nip.serving_per_package).toEqual(p2.serving_per_package);
+    expect(nip.per_serving).toEqual(expectedNutritionPerServing.stringify());
+    expect(nip.per_hundred).toEqual(
+      expectedNutritionPerServing
+        .divide(nip.serving_size)
+        .times(100)
+        .stringify(),
+    );
+  });
+
+  it('should return NIP for product tagged to 1 subproduct tagged to many material', async () => {
+    const createdSupplier = await supplierService.create({ name: 'NTUC' });
+    const createdMaterial1 = await materialService.create({
+      name: 'mat1',
+      supplier_id: createdSupplier.id,
+      energy: '800',
+      protein: '500',
+    });
+    const createdMaterial2 = await materialService.create({
+      name: 'mat2',
+      supplier_id: createdSupplier.id,
+      energy: '1000',
+      protein: '600',
+    });
+    const dto1: CreateProductDto = {
+      name: 'p1',
+      serving_size: 200,
+      serving_unit: SERVING_UNIT.G,
+      serving_per_package: 1,
+      material_id_and_quantity: [
+        {
+          material_id: createdMaterial1.id,
+          quantity: 2,
+        },
+        {
+          material_id: createdMaterial2.id,
+          quantity: 3,
+        },
+      ],
+      sub_product_ids: [],
+    };
+    const p1 = await productService.create(dto1);
+
+    const dto2: CreateProductDto = {
+      name: 'p2',
+      serving_size: 200,
+      serving_unit: SERVING_UNIT.G,
+      serving_per_package: 1,
+      material_id_and_quantity: [],
+      sub_product_ids: [p1.id],
+    };
+    const p2 = await productService.create(dto2);
+
+    const expectedNutritionPerServing: Nutrition = new Nutrition();
+    expectedNutritionPerServing.energy = 4600;
+    expectedNutritionPerServing.protein = 2800;
+
+    const nip = await productService.getNip(p2.id);
+    expect(nip.name).toEqual(p2.name);
+    expect(nip.serving_size).toEqual(p2.serving_size);
+    expect(nip.serving_unit).toEqual(p2.serving_unit);
+    expect(nip.serving_per_package).toEqual(p2.serving_per_package);
+    expect(nip.per_serving).toEqual(expectedNutritionPerServing.stringify());
+    expect(nip.per_hundred).toEqual(
+      expectedNutritionPerServing
+        .divide(nip.serving_size)
+        .times(100)
+        .stringify(),
+    );
+  });
+
+  it('should return NIP for product tagged to many subproduct tagged to 1 material', async () => {
+    const createdSupplier = await supplierService.create({ name: 'NTUC' });
+    const createdMaterial = await materialService.create({
+      name: 'mat1',
+      supplier_id: createdSupplier.id,
+      energy: '800',
+      protein: '500',
+    });
+    const dto1: CreateProductDto = {
+      name: 'p1',
+      serving_size: 200,
+      serving_unit: SERVING_UNIT.G,
+      serving_per_package: 1,
+      material_id_and_quantity: [
+        {
+          material_id: createdMaterial.id,
+          quantity: 2,
+        },
+      ],
+      sub_product_ids: [],
+    };
+    const p1 = await productService.create(dto1);
+
+    const dto2: CreateProductDto = {
+      name: 'p2',
+      serving_size: 200,
+      serving_unit: SERVING_UNIT.G,
+      serving_per_package: 1,
+      material_id_and_quantity: [
+        {
+          material_id: createdMaterial.id,
+          quantity: 2,
+        },
+      ],
+      sub_product_ids: [],
+    };
+    const p2 = await productService.create(dto2);
+
+    const dto3: CreateProductDto = {
+      name: 'p3',
+      serving_size: 200,
+      serving_unit: SERVING_UNIT.G,
+      serving_per_package: 1,
+      material_id_and_quantity: [],
+      sub_product_ids: [p1.id, p2.id],
+    };
+    const p3 = await productService.create(dto3);
+
+    const expectedNutritionPerServing: Nutrition = new Nutrition();
+    expectedNutritionPerServing.energy = 3200;
+    expectedNutritionPerServing.protein = 2000;
+
+    const nip = await productService.getNip(p3.id);
+    expect(nip.name).toEqual(p3.name);
+    expect(nip.serving_size).toEqual(p3.serving_size);
+    expect(nip.serving_unit).toEqual(p3.serving_unit);
+    expect(nip.serving_per_package).toEqual(p3.serving_per_package);
+    expect(nip.per_serving).toEqual(expectedNutritionPerServing.stringify());
+    expect(nip.per_hundred).toEqual(
+      expectedNutritionPerServing
+        .divide(nip.serving_size)
+        .times(100)
+        .stringify(),
+    );
+  });
+
+  it('should return NIP for product tagged to many subproduct tagged to many material', async () => {
+    const createdSupplier = await supplierService.create({ name: 'NTUC' });
+    const createdMaterial1 = await materialService.create({
+      name: 'mat1',
+      supplier_id: createdSupplier.id,
+      energy: '800',
+      protein: '500',
+    });
+    const createdMaterial2 = await materialService.create({
+      name: 'mat2',
+      supplier_id: createdSupplier.id,
+      energy: '1000',
+      protein: '600',
+    });
+    const dto1: CreateProductDto = {
+      name: 'p1',
+      serving_size: 200,
+      serving_unit: SERVING_UNIT.G,
+      serving_per_package: 1,
+      material_id_and_quantity: [
+        {
+          material_id: createdMaterial1.id,
+          quantity: 2,
+        },
+        {
+          material_id: createdMaterial2.id,
+          quantity: 3,
+        },
+      ],
+      sub_product_ids: [],
+    };
+    const p1 = await productService.create(dto1);
+
+    const dto2: CreateProductDto = {
+      name: 'p2',
+      serving_size: 200,
+      serving_unit: SERVING_UNIT.G,
+      serving_per_package: 1,
+      material_id_and_quantity: [
+        {
+          material_id: createdMaterial1.id,
+          quantity: 2,
+        },
+        {
+          material_id: createdMaterial2.id,
+          quantity: 3,
+        },
+      ],
+      sub_product_ids: [],
+    };
+    const p2 = await productService.create(dto2);
+
+    const dto3: CreateProductDto = {
+      name: 'p3',
+      serving_size: 200,
+      serving_unit: SERVING_UNIT.G,
+      serving_per_package: 1,
+      material_id_and_quantity: [],
+      sub_product_ids: [p1.id, p2.id],
+    };
+    const p3 = await productService.create(dto3);
+
+    const expectedNutritionPerServing: Nutrition = new Nutrition();
+    expectedNutritionPerServing.energy = 9200;
+    expectedNutritionPerServing.protein = 5600;
+
+    const nip = await productService.getNip(p3.id);
+    expect(nip.name).toEqual(p3.name);
+    expect(nip.serving_size).toEqual(p3.serving_size);
+    expect(nip.serving_unit).toEqual(p3.serving_unit);
+    expect(nip.serving_per_package).toEqual(p3.serving_per_package);
     expect(nip.per_serving).toEqual(expectedNutritionPerServing.stringify());
     expect(nip.per_hundred).toEqual(
       expectedNutritionPerServing
