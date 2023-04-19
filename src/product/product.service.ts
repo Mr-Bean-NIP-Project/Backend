@@ -16,6 +16,7 @@ import { NipDto, Nutrition, NutritionQuantity } from './dto/nip.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { MaterialProduct } from './entities/material_product.entity';
 import { Product } from './entities/product.entity';
+import { Graph } from '../graph/graph';
 
 @Injectable()
 export class ProductService {
@@ -270,6 +271,8 @@ export class ProductService {
       // trivial case, if there's a cycle with itself
       return true;
     }
+    const graph: Graph<number> = new Graph<number>();
+
     // todo, check using algo
     return false;
   }
@@ -446,4 +449,14 @@ async function calculateNutritionPerServingFromProduct({
     acc.add(cur),
   );
 }
+
+async function constructGraph({
+  dto,
+  productId,
+  productRepository,
+}: {
+  dto: UpdateProductDto;
+  productId: number;
+  productRepository: Repository<Product>;
+}) {}
 // ====================================================================================================================================
