@@ -1,18 +1,18 @@
+import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { initializeTransactionalContext } from 'typeorm-transactional';
 import { TYPEORM_TEST_IMPORTS } from '../common/typeorm_test_helper';
-import { MaterialModule } from '../material/material.module';
-import { ProductService } from './product.service';
-import { SERVING_UNIT } from './entities/product.entity';
-import { CreateProductDto } from './dto/create-product.dto';
-import { MaterialService } from '../material/material.service';
-import { SupplierService } from '../supplier/supplier.service';
-import { CreateSupplierDto } from '../supplier/dto/create-supplier.dto';
 import { CreateMaterialDto } from '../material/dto/create-material.dto';
-import { BadRequestException, NotFoundException } from '@nestjs/common';
+import { MaterialModule } from '../material/material.module';
+import { MaterialService } from '../material/material.service';
+import { CreateSupplierDto } from '../supplier/dto/create-supplier.dto';
+import { SupplierService } from '../supplier/supplier.service';
+import { CreateProductDto } from './dto/create-product.dto';
+import { Nutrition } from './dto/nip.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
+import { SERVING_UNIT } from './entities/product.entity';
 import { ProductModule } from './product.module';
-import { GET_EMPTY_NUTRITION, Nutrition } from './dto/nip.dto';
+import { ProductService } from './product.service';
 
 describe('ProductService', () => {
   let productService: ProductService;
@@ -796,8 +796,12 @@ describe('ProductService', () => {
     expect(nip.serving_size).toEqual(p1.serving_size);
     expect(nip.serving_unit).toEqual(p1.serving_unit);
     expect(nip.serving_per_package).toEqual(p1.serving_per_package);
-    expect(nip.per_serving).toEqual(GET_EMPTY_NUTRITION().stringifyAndAppendUnits());
-    expect(nip.per_hundred).toEqual(GET_EMPTY_NUTRITION().stringifyAndAppendUnits());
+    expect(nip.per_serving).toEqual(
+      new Nutrition().stringifyAndAppendUnits(),
+    );
+    expect(nip.per_hundred).toEqual(
+      new Nutrition().stringifyAndAppendUnits(),
+    );
   });
 
   it('should return NIP for product tagged to 1 material', async () => {

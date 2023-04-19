@@ -92,11 +92,6 @@ export class Nutrition {
   }
 }
 
-export function GET_EMPTY_NUTRITION(): Nutrition {
-  const n: Nutrition = new Nutrition();
-  return n.stringify();
-}
-
 export class NipDto {
   name: string;
   serving_size: number;

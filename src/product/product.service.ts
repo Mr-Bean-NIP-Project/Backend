@@ -12,12 +12,7 @@ import {
   CreateProductDto,
   MaterialIdAndQuantity,
 } from './dto/create-product.dto';
-import {
-  GET_EMPTY_NUTRITION,
-  NipDto,
-  Nutrition,
-  NutritionQuantity,
-} from './dto/nip.dto';
+import { NipDto, Nutrition, NutritionQuantity } from './dto/nip.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { MaterialProduct } from './entities/material_product.entity';
 import { Product } from './entities/product.entity';
@@ -358,7 +353,7 @@ function calculateNutritionPerServingFromMaterialProduct(
   materials: MaterialProduct[] = [],
 ): Nutrition {
   if (materials.length === 0) {
-    return GET_EMPTY_NUTRITION();
+    return new Nutrition();
   }
   const nutritionQuantities = materials.map((m) => {
     const {
@@ -376,7 +371,7 @@ function calculateNutritionPerServingFromMaterialProduct(
     };
   }) as NutritionQuantity[];
 
-  const initialNutrition: Nutrition = GET_EMPTY_NUTRITION();
+  const initialNutrition: Nutrition = new Nutrition();
   for (const { nutrition, quantity } of nutritionQuantities) {
     initialNutrition.addOtherNutrition(nutrition, quantity);
   }
@@ -392,7 +387,7 @@ async function calculateNutritionPerServingFromProduct({
   productRepository: Repository<Product>;
 }): Promise<Nutrition> {
   if (!product) {
-    return GET_EMPTY_NUTRITION();
+    return new Nutrition();
   }
 
   const materialNutrition: Nutrition =

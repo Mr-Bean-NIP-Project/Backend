@@ -2,12 +2,12 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { initializeTransactionalContext } from 'typeorm-transactional';
 import { TYPEORM_TEST_IMPORTS } from '../common/typeorm_test_helper';
 import { MaterialModule } from '../material/material.module';
+import { CreateProductDto } from './dto/create-product.dto';
+import { NipDto, Nutrition } from './dto/nip.dto';
+import { UpdateProductDto } from './dto/update-product.dto';
+import { SERVING_UNIT } from './entities/product.entity';
 import { ProductController } from './product.controller';
 import { ProductService } from './product.service';
-import { CreateProductDto } from './dto/create-product.dto';
-import { SERVING_UNIT } from './entities/product.entity';
-import { UpdateProductDto } from './dto/update-product.dto';
-import { GET_EMPTY_NUTRITION, NipDto } from './dto/nip.dto';
 
 describe('ProductController', () => {
   let controller: ProductController;
@@ -122,9 +122,9 @@ describe('ProductController', () => {
     expectedResult.serving_size = p.serving_size;
     expectedResult.serving_unit = p.serving_unit;
     expectedResult.per_hundred =
-      GET_EMPTY_NUTRITION().stringifyAndAppendUnits();
+      new Nutrition().stringifyAndAppendUnits();
     expectedResult.per_serving =
-      GET_EMPTY_NUTRITION().stringifyAndAppendUnits();
+      new Nutrition().stringifyAndAppendUnits();
     expect(nip).toEqual(expectedResult);
   });
 });
