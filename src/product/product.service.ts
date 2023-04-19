@@ -173,16 +173,18 @@ export class ProductService {
       );
     }
 
-    const cycles = await this.getCycles({
-      dto: updateProductDto,
-      product,
-    });
-    if (hasSubProductUpdate && cycles.length > 0) {
-      throw new BadRequestException(
-        `Cyclic Product not allowed! Cycle(s) detected between product ids: ${cycles
-          .map((c) => `(From: ${c.from}, To: ${c.to})`)
-          .join(', ')}`,
-      );
+    if (hasSubProductUpdate) {
+      const cycles = await this.getCycles({
+        dto: updateProductDto,
+        product,
+      });
+      if (cycles.length > 0) {
+        throw new BadRequestException(
+          `Cyclic Product not allowed! Cycle(s) detected between product ids: ${cycles
+            .map((c) => `(From: ${c.from}, To: ${c.to})`)
+            .join(', ')}`,
+        );
+      }
     }
 
     const { material_id_and_quantity, sub_product_ids, ...strippedDto } =
