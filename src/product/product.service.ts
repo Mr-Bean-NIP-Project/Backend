@@ -141,7 +141,7 @@ export class ProductService {
     const product = await this.findOneOrThrow(id);
     const cycles = await this.getCycles({
       dto: updateProductDto,
-      productId: product.id,
+      product,
     });
     if (hasSubProductUpdate && cycles.length > 0) {
       throw new BadRequestException(
@@ -263,23 +263,24 @@ export class ProductService {
 
   async getCycles({
     dto,
-    productId,
+    product,
   }: {
     dto: UpdateProductDto;
-    productId: number;
+    product: Product;
   }): Promise<Edge<number>[]> {
     if (!dto || !dto.sub_product_ids) return [];
 
     const subProductIds = dto.sub_product_ids;
 
-    if (productId && subProductIds.includes(productId)) {
+    if (product && subProductIds.includes(product.id)) {
       // trivial case, if there's a cycle with itself
-      return [{ from: productId, to: productId }];
+      return [{ from: product.id, to: product.id }];
     }
     const graph: Graph<number> = await constructGraph({
       dto,
-      productId,
+      product,
       productRepository: this.productRepository,
+      visitedProductIds: new Set<number>(),
     });
 
     return graph.getCycles();
@@ -460,12 +461,14 @@ async function calculateNutritionPerServingFromProduct({
 
 async function constructGraph({
   dto,
-  productId,
+  product,
   productRepository,
+  visitedProductIds,
 }: {
   dto: UpdateProductDto;
-  productId: number;
+  product: Product;
   productRepository: Repository<Product>;
+  visitedProductIds: Set<number>;
 }): Promise<Graph<number>> {
   const graph: Graph<number> = new Graph<number>();
 
