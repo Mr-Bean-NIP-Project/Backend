@@ -1,11 +1,12 @@
-import { DataSource, DataSourceOptions } from 'typeorm';
+import { ConfigModule } from '@nestjs/config';
+import { DataSource } from 'typeorm';
+import dbConfig from './db.config';
+import validationSchema from '../src/common/validation.schema';
 
-export const dataSourceOptions: DataSourceOptions = {
-  type: 'sqlite',
-  database: './db.sqlite',
-  entities: ['dist/**/*.entity.js'],
-  migrations: ['dist/db/migrations/*.js'],
-};
+ConfigModule.forRoot({
+  isGlobal: true,
+  load: [dbConfig],
+  validationSchema,
+});
 
-const dataSource = new DataSource(dataSourceOptions);
-export default dataSource;
+export default new DataSource(dbConfig());

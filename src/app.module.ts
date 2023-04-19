@@ -1,27 +1,27 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { DataSource } from 'typeorm';
+import { addTransactionalDataSource } from 'typeorm-transactional';
+import dbConfig from '../db/db.config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import * as Joi from 'joi';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { dataSourceOptions } from '../db/data-source';
-import { SupplierModule } from './supplier/supplier.module';
+import validationSchema from './common/validation.schema';
 import { MaterialModule } from './material/material.module';
 import { ProductModule } from './product/product.module';
-import { addTransactionalDataSource } from 'typeorm-transactional';
-import { DataSource } from 'typeorm';
+import { SupplierModule } from './supplier/supplier.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
-      validationSchema: Joi.object({
-        NODE_ENV: Joi.string().valid('dev', 'prod').default('dev'),
-        PORT: Joi.number().default(3000),
-      }),
+      isGlobal: true,
+      load: [dbConfig],
+      validationSchema,
     }),
     TypeOrmModule.forRootAsync({
-      useFactory() {
-        return dataSourceOptions;
+      inject: [ConfigService],
+      useFactory(configService: ConfigService) {
+        return { ...configService.getOrThrow('database') };
       },
       async dataSourceFactory(options) {
         return addTransactionalDataSource(new DataSource(options));
