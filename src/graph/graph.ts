@@ -52,7 +52,6 @@ function getCyclesHelper<T>({
         from: u,
         to: v,
       };
-      console.log(`Cycle detected: found a back edge from ${u} to ${v}.`);
       cycles.push(cycle);
       break;
     }

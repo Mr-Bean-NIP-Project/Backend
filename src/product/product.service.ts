@@ -16,7 +16,7 @@ import { NipDto, Nutrition, NutritionQuantity } from './dto/nip.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { MaterialProduct } from './entities/material_product.entity';
 import { Product } from './entities/product.entity';
-import { Graph } from '../graph/graph';
+import { Edge, Graph } from '../graph/graph';
 
 @Injectable()
 export class ProductService {
@@ -45,7 +45,7 @@ export class ProductService {
     );
     if (missingMaterialIds.length > 0) {
       throw new BadRequestException(
-        `Missing Materials with ID(s): ${missingMaterialIds.join(',')}`,
+        `Missing Materials with ID(s): ${missingMaterialIds.join(', ')}`,
       );
     }
 
@@ -62,7 +62,7 @@ export class ProductService {
 
     if (missingProductIds.length > 0) {
       throw new BadRequestException(
-        `Missing Products with ID(s): ${missingProductIds.join(',')}`,
+        `Missing Products with ID(s): ${missingProductIds.join(', ')}`,
       );
     }
 
@@ -139,11 +139,16 @@ export class ProductService {
 
     await this.checkNoSameName(updateProductDto);
     const product = await this.findOneOrThrow(id);
-    if (
-      hasSubProductUpdate &&
-      (await this.hasCycle({ dto: updateProductDto, productId: product.id }))
-    ) {
-      throw new BadRequestException(`Cyclic sub product not allowed!`);
+    const cycles = await this.getCycles({
+      dto: updateProductDto,
+      productId: product.id,
+    });
+    if (hasSubProductUpdate && cycles.length > 0) {
+      throw new BadRequestException(
+        `Cyclic Product not allowed! Cycle(s) detected between product ids: ${cycles
+          .map((c) => `(From: ${c.from}, To: ${c.to})`)
+          .join(', ')}`,
+      );
     }
     const materialIds = (updateProductDto.material_id_and_quantity ?? []).map(
       (x) => x.material_id,
@@ -159,7 +164,7 @@ export class ProductService {
     );
     if (missingMaterialIds.length > 0) {
       throw new BadRequestException(
-        `Missing Materials with ID(s): ${missingMaterialIds.join(',')}`,
+        `Missing Materials with ID(s): ${missingMaterialIds.join(', ')}`,
       );
     }
 
@@ -175,7 +180,7 @@ export class ProductService {
     );
     if (missingProductIds.length > 0) {
       throw new BadRequestException(
-        `Missing Products with ID(s): ${missingProductIds.join(',')}`,
+        `Missing Products with ID(s): ${missingProductIds.join(', ')}`,
       );
     }
 
@@ -228,7 +233,7 @@ export class ProductService {
       throw new BadRequestException(
         `Please remove products that references this with ID(s): ${parentProducts
           .map((p) => p.id)
-          .join(',')}`,
+          .join(', ')}`,
       );
     }
     return await this.productRepository.remove(product);
@@ -256,25 +261,28 @@ export class ProductService {
     };
   }
 
-  async hasCycle({
+  async getCycles({
     dto,
     productId,
   }: {
     dto: UpdateProductDto;
     productId: number;
-  }): Promise<boolean> {
-    if (!dto || !dto.sub_product_ids) return false;
+  }): Promise<Edge<number>[]> {
+    if (!dto || !dto.sub_product_ids) return [];
 
     const subProductIds = dto.sub_product_ids;
 
     if (productId && subProductIds.includes(productId)) {
       // trivial case, if there's a cycle with itself
-      return true;
+      return [{ from: productId, to: productId }];
     }
-    const graph: Graph<number> = new Graph<number>();
+    const graph: Graph<number> = await constructGraph({
+      dto,
+      productId,
+      productRepository: this.productRepository,
+    });
 
-    // todo, check using algo
-    return false;
+    return graph.getCycles();
   }
 
   private async getMissingMaterialIds(
@@ -458,5 +466,9 @@ async function constructGraph({
   dto: UpdateProductDto;
   productId: number;
   productRepository: Repository<Product>;
-}) {}
+}): Promise<Graph<number>> {
+  const graph: Graph<number> = new Graph<number>();
+
+  return graph;
+}
 // ====================================================================================================================================
