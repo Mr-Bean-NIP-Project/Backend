@@ -18,6 +18,8 @@ import { MaterialProduct } from './material_product.entity';
 export enum SERVING_UNIT {
   G = 'g',
   ML = 'ml',
+  MG = 'mg',
+  KCAL = 'kcal'
 }
 
 @Entity()

@@ -14,6 +14,19 @@ export enum NUMBER_OF_DP {
   sodium = 0,
 }
 
+export enum UNITS {
+  energy = SERVING_UNIT.KCAL,
+  protein = SERVING_UNIT.G,
+  total_fat = SERVING_UNIT.G,
+  saturated_fat = SERVING_UNIT.G,
+  trans_fat = SERVING_UNIT.G,
+  cholesterol = SERVING_UNIT.MG,
+  carbohydrate = SERVING_UNIT.G,
+  sugars = SERVING_UNIT.G,
+  dietary_fibre = SERVING_UNIT.G,
+  sodium = SERVING_UNIT.MG,
+}
+
 export interface NutritionQuantity {
   nutrition: Nutrition;
   quantity: number;
@@ -94,7 +107,6 @@ export class Nutrition {
     return this;
   }
 
-
   stringify(): Nutrition {
     this.energy = Big(this.energy).toFixed(NUMBER_OF_DP.energy);
     this.protein = Big(this.protein).toFixed(NUMBER_OF_DP.protein);
@@ -106,6 +118,21 @@ export class Nutrition {
     this.sugars = Big(this.sugars).toFixed(NUMBER_OF_DP.sugars);
     this.dietary_fibre = Big(this.dietary_fibre).toFixed(NUMBER_OF_DP.dietary_fibre);
     this.sodium = Big(this.sodium).toFixed(NUMBER_OF_DP.sodium);
+    return this;
+  }
+
+  stringifyAndAppendUnits(): Nutrition {
+    this.stringify();
+    this.energy = `${this.energy}${UNITS.energy}`;
+    this.protein = `${this.protein}${UNITS.protein}`;
+    this.total_fat = `${this.total_fat}${UNITS.total_fat}`;
+    this.saturated_fat = `${this.saturated_fat}${UNITS.saturated_fat}`;
+    this.trans_fat = `${this.trans_fat}${UNITS.trans_fat}`;
+    this.cholesterol = `${this.cholesterol}${UNITS.cholesterol}`;
+    this.carbohydrate = `${this.carbohydrate}${UNITS.carbohydrate}`;
+    this.sugars = `${this.sugars}${UNITS.sugars}`;
+    this.dietary_fibre = `${this.dietary_fibre}${UNITS.dietary_fibre}`;
+    this.sodium = `${this.sodium}${UNITS.sodium}`;
     return this;
   }
 }

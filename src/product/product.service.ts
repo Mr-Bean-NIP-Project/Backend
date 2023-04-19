@@ -251,12 +251,12 @@ export class ProductService {
       serving_size: product.serving_size,
       serving_unit: product.serving_unit,
       serving_per_package: product.serving_per_package,
-      per_serving: nutritionPerServing.stringify(),
+      per_serving: nutritionPerServing.copy().stringifyAndAppendUnits(),
       per_hundred: nutritionPerServing
         .copy()
         .divide(product.serving_size)
         .times(100)
-        .stringify(),
+        .stringifyAndAppendUnits(),
     };
   }
 
