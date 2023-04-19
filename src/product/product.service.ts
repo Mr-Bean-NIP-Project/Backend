@@ -65,6 +65,10 @@ export class ProductService {
       );
     }
 
+    if (await this.hasCycle({ dto: createProductDto })) {
+      throw new BadRequestException(`Cyclic sub product not allowed!`);
+    }
+
     const { material_id_and_quantity, sub_product_ids, ...dao } =
       createProductDto;
     const product = await this.productRepository.save({
@@ -140,7 +144,7 @@ export class ProductService {
     const product = await this.findOneOrThrow(id);
     if (
       hasSubProductUpdate &&
-      updateProductDto.sub_product_ids.includes(product.id)
+      (await this.hasCycle({ dto: updateProductDto, productId: product.id }))
     ) {
       throw new BadRequestException(`Cyclic sub product not allowed!`);
     }
@@ -253,6 +257,22 @@ export class ProductService {
         .times(100)
         .stringifyAndAppendUnits(),
     };
+  }
+
+  async hasCycle({
+    dto,
+    productId,
+  }: {
+    dto: UpdateProductDto;
+    productId?: number;
+  }): Promise<boolean> {
+    if (!dto || !dto.sub_product_ids) return false;
+    if (productId && dto.sub_product_ids.includes(productId)) {
+      // trivial case, if there's a cycle with itself
+      return true;
+    }
+    // todo, check using algo
+    return false;
   }
 
   private async getMissingMaterialIds(
