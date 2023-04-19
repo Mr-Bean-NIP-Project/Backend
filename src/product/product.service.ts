@@ -16,7 +16,7 @@ import {
   GET_EMPTY_NUTRITION,
   NipDto,
   Nutrition,
-  NutritionQuantity
+  NutritionQuantity,
 } from './dto/nip.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { MaterialProduct } from './entities/material_product.entity';
@@ -386,11 +386,9 @@ function calculateNutritionPerServingFromMaterialProduct(
 
 async function calculateNutritionPerServingFromProduct({
   product,
-  accumulate = GET_EMPTY_NUTRITION(),
   productRepository,
 }: {
   product: Product;
-  accumulate?: Nutrition;
   productRepository: Repository<Product>;
 }): Promise<Nutrition> {
   if (!product) {
@@ -430,8 +428,8 @@ async function calculateNutritionPerServingFromProduct({
     ),
   );
 
-  return [materialNutrition, ...subProductNutritions]
-    .reduce((acc, cur) => acc.addOtherNutrition(cur))
-    .addOtherNutrition(accumulate);
+  return [materialNutrition, ...subProductNutritions].reduce((acc, cur) =>
+    acc.addOtherNutrition(cur),
+  );
 }
 // ====================================================================================================================================
