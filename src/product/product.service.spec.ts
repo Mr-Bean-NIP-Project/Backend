@@ -1171,4 +1171,58 @@ describe('ProductService', () => {
         .stringifyAndAppendUnits(),
     );
   });
+
+  it('should prevent cyclic products beyond trivial case', async () => {
+    // should catch 4 => 3 => 2 => 1 THEN we try to update 1 => 4
+    const dto1: CreateProductDto = {
+      name: 'p1',
+      serving_size: 200,
+      serving_unit: SERVING_UNIT.G,
+      serving_per_package: 1,
+      material_id_and_quantity: [],
+      sub_product_ids: [],
+    };
+    const p1 = await productService.create(dto1);
+
+    const dto2: CreateProductDto = {
+      name: 'p2',
+      serving_size: 200,
+      serving_unit: SERVING_UNIT.G,
+      serving_per_package: 1,
+      material_id_and_quantity: [],
+      sub_product_ids: [p1.id],
+    };
+    const p2 = await productService.create(dto2);
+
+    const dto3: CreateProductDto = {
+      name: 'p3',
+      serving_size: 200,
+      serving_unit: SERVING_UNIT.G,
+      serving_per_package: 1,
+      material_id_and_quantity: [],
+      sub_product_ids: [p2.id],
+    };
+    const p3 = await productService.create(dto3);
+
+    const dto4: CreateProductDto = {
+      name: 'p4',
+      serving_size: 200,
+      serving_unit: SERVING_UNIT.G,
+      serving_per_package: 1,
+      material_id_and_quantity: [],
+      sub_product_ids: [p3.id],
+    };
+    const p4 = await productService.create(dto4);
+
+    // now we try to update p1 with p4 as sub product
+    const updateDto: UpdateProductDto = {
+      sub_product_ids: [p4.id]
+    }
+
+    const t = async () => {
+      return await productService.update(p1.id, updateDto);
+    };
+
+    await expect(t).rejects.toThrowError(BadRequestException);
+  })
 });
