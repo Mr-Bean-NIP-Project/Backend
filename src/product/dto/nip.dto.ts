@@ -33,29 +33,16 @@ export interface NutritionQuantity {
 }
 
 export class Nutrition {
-  energy: BigSource;
-  protein: BigSource;
-  total_fat: BigSource;
-  saturated_fat: BigSource;
-  trans_fat: BigSource;
-  cholesterol: BigSource;
-  carbohydrate: BigSource;
-  sugars: BigSource;
-  dietary_fibre: BigSource;
-  sodium: BigSource;
-
-  constructor() {
-    this.energy = '0';
-    this.protein = '0';
-    this.total_fat = '0';
-    this.saturated_fat = '0';
-    this.trans_fat = '0';
-    this.cholesterol = '0';
-    this.carbohydrate = '0';
-    this.sugars = '0';
-    this.dietary_fibre = '0';
-    this.sodium = '0';
-  }
+  energy: BigSource = '0';
+  protein: BigSource = '0';
+  total_fat: BigSource = '0';
+  saturated_fat: BigSource = '0';
+  trans_fat: BigSource = '0';
+  cholesterol: BigSource = '0';
+  carbohydrate: BigSource = '0';
+  sugars: BigSource = '0';
+  dietary_fibre: BigSource = '0';
+  sodium: BigSource = '0';
 
   static staticCopy(other: Nutrition): Nutrition {
     return Object.assign(Object.create(Object.getPrototypeOf(other)), other);
@@ -66,73 +53,45 @@ export class Nutrition {
   }
 
   addOtherNutrition(other: Nutrition, quantityOfInput: number = 1): Nutrition {
-    this.energy = Big(this.energy).add(Big(other.energy).times(quantityOfInput));
-    this.protein = Big(this.protein).add(Big(other.protein).times(quantityOfInput));
-    this.total_fat = Big(this.total_fat).add(Big(other.total_fat).times(quantityOfInput));
-    this.saturated_fat = Big(this.saturated_fat).add(Big(other.saturated_fat).times(quantityOfInput));
-    this.trans_fat = Big(this.trans_fat).add(Big(other.trans_fat).times(quantityOfInput));
-    this.cholesterol = Big(this.cholesterol).add(Big(other.cholesterol).times(quantityOfInput));
-    this.carbohydrate = Big(this.carbohydrate).add(Big(other.carbohydrate).times(quantityOfInput));
-    this.sugars = Big(this.sugars).add(Big(other.sugars).times(quantityOfInput));
-    this.dietary_fibre = Big(this.dietary_fibre).add(Big(other.dietary_fibre).times(quantityOfInput));
-    this.sodium = Big(this.sodium).add(Big(other.sodium).times(quantityOfInput));
+    for (const field in this) {
+      const sField = field as string;
+      this[sField] = Big(this[sField]).add(
+        Big(other[sField]).times(quantityOfInput),
+      );
+    }
     return this;
   }
 
   divide(divider: BigSource) {
-    this.energy = Big(this.energy).div(Big(divider));
-    this.protein = Big(this.protein).div(Big(divider));
-    this.total_fat = Big(this.total_fat).div(Big(divider));
-    this.saturated_fat = Big(this.saturated_fat).div(Big(divider));
-    this.trans_fat = Big(this.trans_fat).div(Big(divider));
-    this.cholesterol = Big(this.cholesterol).div(Big(divider));
-    this.carbohydrate = Big(this.carbohydrate).div(Big(divider));
-    this.sugars = Big(this.sugars).div(Big(divider));
-    this.dietary_fibre = Big(this.dietary_fibre).div(Big(divider));
-    this.sodium = Big(this.sodium).div(Big(divider));
+    for (const field in this) {
+      const sField = field as string;
+      this[sField] = Big(this[sField]).div(divider);
+    }
     return this;
   }
 
   times(multiplier: BigSource) {
-    this.energy = Big(this.energy).times(Big(multiplier));
-    this.protein = Big(this.protein).times(Big(multiplier));
-    this.total_fat = Big(this.total_fat).times(Big(multiplier));
-    this.saturated_fat = Big(this.saturated_fat).times(Big(multiplier));
-    this.trans_fat = Big(this.trans_fat).times(Big(multiplier));
-    this.cholesterol = Big(this.cholesterol).times(Big(multiplier));
-    this.carbohydrate = Big(this.carbohydrate).times(Big(multiplier));
-    this.sugars = Big(this.sugars).times(Big(multiplier));
-    this.dietary_fibre = Big(this.dietary_fibre).times(Big(multiplier));
-    this.sodium = Big(this.sodium).times(Big(multiplier));
+    for (const field in this) {
+      const sField = field as string;
+      this[sField] = Big(this[sField]).times(multiplier);
+    }
     return this;
   }
 
   stringify(): Nutrition {
-    this.energy = Big(this.energy).toFixed(NUMBER_OF_DP.energy);
-    this.protein = Big(this.protein).toFixed(NUMBER_OF_DP.protein);
-    this.total_fat = Big(this.total_fat).toFixed(NUMBER_OF_DP.total_fat);
-    this.saturated_fat = Big(this.saturated_fat).toFixed(NUMBER_OF_DP.saturated_fat);
-    this.trans_fat = Big(this.trans_fat).toFixed(NUMBER_OF_DP.trans_fat);
-    this.cholesterol = Big(this.cholesterol).toFixed(NUMBER_OF_DP.cholesterol);
-    this.carbohydrate = Big(this.carbohydrate).toFixed(NUMBER_OF_DP.carbohydrate);
-    this.sugars = Big(this.sugars).toFixed(NUMBER_OF_DP.sugars);
-    this.dietary_fibre = Big(this.dietary_fibre).toFixed(NUMBER_OF_DP.dietary_fibre);
-    this.sodium = Big(this.sodium).toFixed(NUMBER_OF_DP.sodium);
+    for (const field in this) {
+      const sField = field as string;
+      this[sField] = Big(this[sField]).toFixed(NUMBER_OF_DP[sField]);
+    }
     return this;
   }
 
   stringifyAndAppendUnits(): Nutrition {
     this.stringify();
-    this.energy = `${this.energy}${UNITS.energy}`;
-    this.protein = `${this.protein}${UNITS.protein}`;
-    this.total_fat = `${this.total_fat}${UNITS.total_fat}`;
-    this.saturated_fat = `${this.saturated_fat}${UNITS.saturated_fat}`;
-    this.trans_fat = `${this.trans_fat}${UNITS.trans_fat}`;
-    this.cholesterol = `${this.cholesterol}${UNITS.cholesterol}`;
-    this.carbohydrate = `${this.carbohydrate}${UNITS.carbohydrate}`;
-    this.sugars = `${this.sugars}${UNITS.sugars}`;
-    this.dietary_fibre = `${this.dietary_fibre}${UNITS.dietary_fibre}`;
-    this.sodium = `${this.sodium}${UNITS.sodium}`;
+    for (const field in this) {
+      const sField = field as string;
+      this[sField] = `${this[sField]}${UNITS[sField]}`;
+    }
     return this;
   }
 }
