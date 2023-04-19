@@ -498,7 +498,6 @@ async function constructGraph({
           where: { id },
         });
       })
-      .filter(Boolean),
   );
 
   const child_graphs: Graph<number>[] = await Promise.all(
