@@ -6,19 +6,10 @@ export interface Edge<T> {
 export class Graph<T> {
   adjLists: Map<T, Set<T>> = new Map<T, Set<T>>();
 
-  isStrictEqual(other: Graph<T>): boolean {
-    if (other.adjLists.size !== this.adjLists.size) return false;
-    for (const [key, val] of this.adjLists) {
-      if (!other.adjLists.has(key)) return false;
-
-      const oAdjList = other.adjLists.get(key);
-      if (![...oAdjList].every((x) => val.has(x))) return false;
-    }
-    return true;
-  }
-
   copy(): Graph<T> {
-    return Object.assign(Object.create(Object.getPrototypeOf(this)), this);
+    const g = new Graph<T>();
+    g.adjLists = new Map([...this.adjLists]);
+    return g;
   }
 
   // immutable

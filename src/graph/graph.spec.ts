@@ -9,15 +9,19 @@ describe('Graph', () => {
 
     const g3 = g1.merge(g2); // { 1 => [2], 2 => [3] }
 
-    const expectedGraph = new Graph<number>();
-    expectedGraph.addEdge({ from: 1, to: 2 });
-    expectedGraph.addEdge({ from: 2, to: 3 });
-
     expect(g1.adjLists.get(1)).toContain(2);
+    expect(g1.adjLists.get(1).size).toBe(1);
+    expect(g1.adjLists.size).toBe(1);
+
     expect(g2.adjLists.get(2)).toContain(3);
-    expect(g3.isStrictEqual(expectedGraph)).toBeTruthy();
+    expect(g2.adjLists.get(2).size).toBe(1);
+    expect(g2.adjLists.size).toBe(1);
+
     expect(g3.adjLists.get(1)).toContain(2);
+    expect(g3.adjLists.get(1).size).toBe(1);
     expect(g3.adjLists.get(2)).toContain(3);
+    expect(g3.adjLists.get(2).size).toBe(1);
+    expect(g3.adjLists.size).toBe(2);
   });
 
   it('should merge (with collision)', () => {
@@ -28,16 +32,18 @@ describe('Graph', () => {
 
     const g3 = g1.merge(g2); // { 1 => [2, 3] }
 
-    const expectedGraph = new Graph<number>();
-    expectedGraph.addEdge({ from: 1, to: 2 });
-    expectedGraph.addEdge({ from: 1, to: 3 });
-
     expect(g1.adjLists.get(1)).toContain(2);
-    expect(g2.adjLists.get(1)).toContain(3);
+    expect(g1.adjLists.get(1).size).toBe(1);
+    expect(g1.adjLists.size).toBe(1);
 
-    expect(g3.isStrictEqual(expectedGraph)).toBeTruthy();
+    expect(g2.adjLists.get(1)).toContain(3);
+    expect(g2.adjLists.get(1).size).toBe(1);
+    expect(g2.adjLists.size).toBe(1);
+
     expect(g3.adjLists.get(1)).toContain(2);
     expect(g3.adjLists.get(1)).toContain(3);
+    expect(g3.adjLists.get(1).size).toBe(2);
+    expect(g3.adjLists.size).toBe(1);
   });
 
   it('should detect no cycles', () => {
