@@ -796,12 +796,8 @@ describe('ProductService', () => {
     expect(nip.serving_size).toEqual(p1.serving_size);
     expect(nip.serving_unit).toEqual(p1.serving_unit);
     expect(nip.serving_per_package).toEqual(p1.serving_per_package);
-    expect(nip.per_serving).toEqual(
-      new Nutrition().stringifyAndAppendUnits(),
-    );
-    expect(nip.per_hundred).toEqual(
-      new Nutrition().stringifyAndAppendUnits(),
-    );
+    expect(nip.per_serving).toEqual(new Nutrition().stringifyAndAppendUnits());
+    expect(nip.per_hundred).toEqual(new Nutrition().stringifyAndAppendUnits());
   });
 
   it('should return NIP for product tagged to 1 material', async () => {
@@ -1170,5 +1166,76 @@ describe('ProductService', () => {
         .times(100)
         .stringifyAndAppendUnits(),
     );
+  });
+
+  it('should prevent cyclic products beyond trivial case', async () => {
+    // should catch 4 => 3 => 2 => 1 THEN we try to update with a cycle
+    const dto1: CreateProductDto = {
+      name: 'p1',
+      serving_size: 200,
+      serving_unit: SERVING_UNIT.G,
+      serving_per_package: 1,
+      material_id_and_quantity: [],
+      sub_product_ids: [],
+    };
+    const p1 = await productService.create(dto1);
+
+    const dto2: CreateProductDto = {
+      name: 'p2',
+      serving_size: 200,
+      serving_unit: SERVING_UNIT.G,
+      serving_per_package: 1,
+      material_id_and_quantity: [],
+      sub_product_ids: [p1.id],
+    };
+    const p2 = await productService.create(dto2);
+
+    const dto3: CreateProductDto = {
+      name: 'p3',
+      serving_size: 200,
+      serving_unit: SERVING_UNIT.G,
+      serving_per_package: 1,
+      material_id_and_quantity: [],
+      sub_product_ids: [p2.id],
+    };
+    const p3 = await productService.create(dto3);
+
+    const dto4: CreateProductDto = {
+      name: 'p4',
+      serving_size: 200,
+      serving_unit: SERVING_UNIT.G,
+      serving_per_package: 1,
+      material_id_and_quantity: [],
+      sub_product_ids: [p3.id],
+    };
+    const p4 = await productService.create(dto4);
+
+    const updateDto: UpdateProductDto = {
+      sub_product_ids: [p4.id],
+    };
+
+    // now we try to update p1 with p4 as sub product aka 1 => 4
+    const t1 = async () => {
+      return await productService.update(p1.id, { ...updateDto });
+    };
+    await expect(t1).rejects.toThrowError(BadRequestException);
+
+    // now we try to update p2 with p4 as sub product aka 2 => 4
+    const t2 = async () => {
+      return await productService.update(p2.id, { ...updateDto });
+    };
+    await expect(t2).rejects.toThrowError(BadRequestException);
+
+    // now we try to update p3 with p4 as sub product aka 3 => 4
+    const t3 = async () => {
+      return await productService.update(p3.id, { ...updateDto });
+    };
+    await expect(t3).rejects.toThrowError(BadRequestException);
+
+    // now we try to update p4 with p4 as sub product aka 4 => 4
+    const t4 = async () => {
+      return await productService.update(p4.id, { ...updateDto });
+    };
+    await expect(t4).rejects.toThrowError(BadRequestException);
   });
 });

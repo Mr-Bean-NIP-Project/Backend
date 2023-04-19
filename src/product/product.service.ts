@@ -16,6 +16,7 @@ import { NipDto, Nutrition, NutritionQuantity } from './dto/nip.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { MaterialProduct } from './entities/material_product.entity';
 import { Product } from './entities/product.entity';
+import { Edge, Graph } from '../graph/graph';
 
 @Injectable()
 export class ProductService {
@@ -44,7 +45,7 @@ export class ProductService {
     );
     if (missingMaterialIds.length > 0) {
       throw new BadRequestException(
-        `Missing Materials with ID(s): ${missingMaterialIds.join(',')}`,
+        `Missing Materials with ID(s): ${missingMaterialIds.join(', ')}`,
       );
     }
 
@@ -61,7 +62,7 @@ export class ProductService {
 
     if (missingProductIds.length > 0) {
       throw new BadRequestException(
-        `Missing Products with ID(s): ${missingProductIds.join(',')}`,
+        `Missing Products with ID(s): ${missingProductIds.join(', ')}`,
       );
     }
 
@@ -138,12 +139,6 @@ export class ProductService {
 
     await this.checkNoSameName(updateProductDto);
     const product = await this.findOneOrThrow(id);
-    if (
-      hasSubProductUpdate &&
-      updateProductDto.sub_product_ids.includes(product.id)
-    ) {
-      throw new BadRequestException(`Cyclic sub product not allowed!`);
-    }
     const materialIds = (updateProductDto.material_id_and_quantity ?? []).map(
       (x) => x.material_id,
     );
@@ -158,7 +153,7 @@ export class ProductService {
     );
     if (missingMaterialIds.length > 0) {
       throw new BadRequestException(
-        `Missing Materials with ID(s): ${missingMaterialIds.join(',')}`,
+        `Missing Materials with ID(s): ${missingMaterialIds.join(', ')}`,
       );
     }
 
@@ -174,7 +169,19 @@ export class ProductService {
     );
     if (missingProductIds.length > 0) {
       throw new BadRequestException(
-        `Missing Products with ID(s): ${missingProductIds.join(',')}`,
+        `Missing Products with ID(s): ${missingProductIds.join(', ')}`,
+      );
+    }
+
+    const cycles = await this.getCycles({
+      dto: updateProductDto,
+      product,
+    });
+    if (hasSubProductUpdate && cycles.length > 0) {
+      throw new BadRequestException(
+        `Cyclic Product not allowed! Cycle(s) detected between product ids: ${cycles
+          .map((c) => `(From: ${c.from}, To: ${c.to})`)
+          .join(', ')}`,
       );
     }
 
@@ -227,7 +234,7 @@ export class ProductService {
       throw new BadRequestException(
         `Please remove products that references this with ID(s): ${parentProducts
           .map((p) => p.id)
-          .join(',')}`,
+          .join(', ')}`,
       );
     }
     return await this.productRepository.remove(product);
@@ -253,6 +260,31 @@ export class ProductService {
         .times(100)
         .stringifyAndAppendUnits(),
     };
+  }
+
+  async getCycles({
+    dto,
+    product,
+  }: {
+    dto: UpdateProductDto;
+    product: Product;
+  }): Promise<Edge<number>[]> {
+    if (!dto || !dto.sub_product_ids) return [];
+
+    const subProductIds = dto.sub_product_ids;
+
+    if (product && subProductIds.includes(product.id)) {
+      // trivial case, if there's a cycle with itself
+      return [{ from: product.id, to: product.id }];
+    }
+    const graph: Graph<number> = await constructGraph({
+      sub_product_ids: dto.sub_product_ids,
+      product_id: product.id,
+      productRepository: this.productRepository,
+      visitedProductIds: new Set<number>(),
+    });
+
+    return graph.getCycles();
   }
 
   private async getMissingMaterialIds(
@@ -386,10 +418,6 @@ async function calculateNutritionPerServingFromProduct({
   product: Product;
   productRepository: Repository<Product>;
 }): Promise<Nutrition> {
-  if (!product) {
-    return new Nutrition();
-  }
-
   const materialNutrition: Nutrition =
     calculateNutritionPerServingFromMaterialProduct(product.material_product);
 
@@ -426,5 +454,64 @@ async function calculateNutritionPerServingFromProduct({
   return [materialNutrition, ...subProductNutritions].reduce((acc, cur) =>
     acc.add(cur),
   );
+}
+
+async function constructGraph({
+  sub_product_ids,
+  product_id,
+  productRepository,
+  visitedProductIds,
+}: {
+  sub_product_ids: number[];
+  product_id: number;
+  productRepository: Repository<Product>;
+  visitedProductIds: Set<number>;
+}): Promise<Graph<number>> {
+  visitedProductIds.add(product_id);
+  const g = new Graph<number>();
+  if (!sub_product_ids || sub_product_ids.length === 0) {
+    // base case, when there's no subproducts
+    return g;
+  }
+
+  // add all the immediate child first
+  for (const id of sub_product_ids) {
+    g.addEdge({ from: product_id, to: id });
+  }
+
+  // if has seen before, dont process
+  const filtered_sub_product_ids = sub_product_ids.filter(
+    (id) => !visitedProductIds.has(id),
+  );
+
+  const child_products: Product[] = await Promise.all(
+    filtered_sub_product_ids
+      .map(async (id) => {
+        return await productRepository.findOne({
+          relations: {
+            sub_products: true,
+            material_product: {
+              material: true,
+            },
+          },
+          where: { id },
+        });
+      })
+      .filter(Boolean),
+  );
+
+  const child_graphs: Graph<number>[] = await Promise.all(
+    child_products.map(async (p) => {
+      // recursively do it for child_products
+      return await constructGraph({
+        sub_product_ids: p.sub_products.map((sp) => sp.id),
+        product_id: p.id,
+        productRepository,
+        visitedProductIds,
+      });
+    }),
+  );
+
+  return [g, ...child_graphs].reduce((acc, cur) => acc.merge(cur));
 }
 // ====================================================================================================================================
