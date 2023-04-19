@@ -13,6 +13,7 @@ import { UpdateProductDto } from './dto/update-product.dto';
 import { SERVING_UNIT } from './entities/product.entity';
 import { ProductModule } from './product.module';
 import { ProductService } from './product.service';
+import ERROR_MESSAGE_FORMATS from '../common/error_message_formats';
 
 describe('ProductService', () => {
   let productService: ProductService;
@@ -183,13 +184,16 @@ describe('ProductService', () => {
       ...dto1,
     };
 
-    await productService.create(dto1);
+    const p1 = await productService.create(dto1);
 
     const t = async () => {
       return await productService.create(dto2);
     };
 
     await expect(t).rejects.toThrowError(BadRequestException);
+    await expect(t).rejects.toThrowError(
+      ERROR_MESSAGE_FORMATS.PRODUCT.SAME_NAME(p1.id),
+    );
   });
 
   it('should prevent updating to same name', async () => {
@@ -214,6 +218,9 @@ describe('ProductService', () => {
     };
 
     await expect(t).rejects.toThrowError(BadRequestException);
+    await expect(t).rejects.toThrowError(
+      ERROR_MESSAGE_FORMATS.PRODUCT.SAME_NAME(p1.id),
+    );
   });
 
   it('should fail to create product with unknown material', async () => {
@@ -230,6 +237,9 @@ describe('ProductService', () => {
     };
 
     await expect(t).rejects.toThrowError(BadRequestException);
+    await expect(t).rejects.toThrowError(
+      ERROR_MESSAGE_FORMATS.PRODUCT.MISSING_MATERIALS([1]),
+    );
   });
 
   it('should fail to create product with unknown sub-product', async () => {
@@ -246,6 +256,9 @@ describe('ProductService', () => {
     };
 
     await expect(t).rejects.toThrowError(BadRequestException);
+    await expect(t).rejects.toThrowError(
+      ERROR_MESSAGE_FORMATS.PRODUCT.MISSING_PRODUCTS([1]),
+    );
   });
 
   it('should fail to update product cylic subproduct', async () => {
@@ -264,6 +277,11 @@ describe('ProductService', () => {
     };
 
     await expect(t).rejects.toThrowError(BadRequestException);
+    await expect(t).rejects.toThrowError(
+      ERROR_MESSAGE_FORMATS.PRODUCT.CYCLIC_PRODUCTS([
+        { from: p1.id, to: p1.id },
+      ]),
+    );
   });
 
   it('should update successfully', async () => {
@@ -698,9 +716,13 @@ describe('ProductService', () => {
     };
 
     await expect(t).rejects.toThrowError(BadRequestException);
+    await expect(t).rejects.toThrowError(
+      ERROR_MESSAGE_FORMATS.PRODUCT.MISSING_MATERIALS([1]),
+    );
   });
 
   it('should fail to update a product with a subproduct that does not exist', async () => {
+    const missingProductId = 10;
     const dto1: CreateProductDto = {
       name: 'p1',
       serving_size: 10,
@@ -710,7 +732,7 @@ describe('ProductService', () => {
     const p1 = await productService.create(dto1);
 
     const updateDto: UpdateProductDto = {
-      sub_product_ids: [10], // doesnt exist
+      sub_product_ids: [missingProductId], // doesnt exist
     };
 
     const t = async () => {
@@ -718,6 +740,9 @@ describe('ProductService', () => {
     };
 
     await expect(t).rejects.toThrowError(BadRequestException);
+    await expect(t).rejects.toThrowError(
+      ERROR_MESSAGE_FORMATS.PRODUCT.MISSING_PRODUCTS([missingProductId]),
+    );
   });
 
   it('should fail to update a product with a material that does not exist', async () => {
@@ -755,13 +780,16 @@ describe('ProductService', () => {
       material_id_and_quantity: [],
       sub_product_ids: [p1.id],
     };
-    await productService.create(dto2);
+    const p2 = await productService.create(dto2);
 
     const t = async () => {
       return await productService.remove(p1.id);
     };
 
     await expect(t).rejects.toThrowError(BadRequestException);
+    await expect(t).rejects.toThrowError(
+      ERROR_MESSAGE_FORMATS.PRODUCT.HAS_PARENT_REFERENCE([p2.id]),
+    );
   });
 
   it('should successfully remove a product', async () => {

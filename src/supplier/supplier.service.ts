@@ -12,6 +12,7 @@ import { UpdateSupplierDto } from './dto/update-supplier.dto';
 import { Supplier } from './entities/supplier.entity';
 import { MaterialService } from '../material/material.service';
 import { Transactional } from 'typeorm-transactional';
+import ERROR_MESSAGE_FORMATS from '../common/error_message_formats';
 
 @Injectable()
 export class SupplierService {
@@ -65,7 +66,7 @@ export class SupplierService {
     const taggedMaterials = await this.materialService.findTaggedSupplier(id);
     if (taggedMaterials.length > 0) {
       throw new BadRequestException(
-        `There's still ${taggedMaterials.length} material(s) tagged to this supplier!`,
+        ERROR_MESSAGE_FORMATS.SUPPLIER.TAGGED_MATERIALS(taggedMaterials.length),
       );
     }
 
@@ -77,7 +78,7 @@ export class SupplierService {
     const sameNameSupplier = await this.findOneByName(dto.name);
     if (sameNameSupplier) {
       throw new BadRequestException(
-        `Supplier with id: ${sameNameSupplier.id} has the same name!`,
+        ERROR_MESSAGE_FORMATS.SUPPLIER.SAME_NAME(sameNameSupplier.id),
       );
     }
   }

@@ -12,6 +12,7 @@ import { CreateMaterialDto } from './dto/create-material.dto';
 import { UpdateMaterialDto } from './dto/update-material.dto';
 import { Material } from './entities/material.entity';
 import { Transactional } from 'typeorm-transactional';
+import ERROR_MESSAGE_FORMATS from '../common/error_message_formats';
 
 @Injectable()
 export class MaterialService {
@@ -98,7 +99,7 @@ export class MaterialService {
     const sameNameMaterial = await this.findOneByName(dto.name);
     if (sameNameMaterial) {
       throw new BadRequestException(
-        `Material with id: ${sameNameMaterial.id} has the same name!`,
+        ERROR_MESSAGE_FORMATS.MATERIAL.SAME_NAME(sameNameMaterial.id),
       );
     }
   }

@@ -17,6 +17,7 @@ import { UpdateProductDto } from './dto/update-product.dto';
 import { MaterialProduct } from './entities/material_product.entity';
 import { Product } from './entities/product.entity';
 import { Edge, Graph } from '../graph/graph';
+import ERROR_MESSAGE_FORMATS from '../common/error_message_formats';
 
 @Injectable()
 export class ProductService {
@@ -45,7 +46,7 @@ export class ProductService {
     );
     if (missingMaterialIds.length > 0) {
       throw new BadRequestException(
-        `Missing Materials with ID(s): ${missingMaterialIds.join(', ')}`,
+        ERROR_MESSAGE_FORMATS.PRODUCT.MISSING_MATERIALS(missingMaterialIds),
       );
     }
 
@@ -62,7 +63,7 @@ export class ProductService {
 
     if (missingProductIds.length > 0) {
       throw new BadRequestException(
-        `Missing Products with ID(s): ${missingProductIds.join(', ')}`,
+        ERROR_MESSAGE_FORMATS.PRODUCT.MISSING_PRODUCTS(missingProductIds),
       );
     }
 
@@ -153,7 +154,7 @@ export class ProductService {
     );
     if (missingMaterialIds.length > 0) {
       throw new BadRequestException(
-        `Missing Materials with ID(s): ${missingMaterialIds.join(', ')}`,
+        ERROR_MESSAGE_FORMATS.PRODUCT.MISSING_MATERIALS(missingMaterialIds),
       );
     }
 
@@ -169,7 +170,7 @@ export class ProductService {
     );
     if (missingProductIds.length > 0) {
       throw new BadRequestException(
-        `Missing Products with ID(s): ${missingProductIds.join(', ')}`,
+        ERROR_MESSAGE_FORMATS.PRODUCT.MISSING_PRODUCTS(missingProductIds),
       );
     }
 
@@ -180,9 +181,7 @@ export class ProductService {
       });
       if (cycles.length > 0) {
         throw new BadRequestException(
-          `Cyclic Product not allowed! Cycle(s) detected between product ids: ${cycles
-            .map((c) => `(From: ${c.from}, To: ${c.to})`)
-            .join(', ')}`,
+          ERROR_MESSAGE_FORMATS.PRODUCT.CYCLIC_PRODUCTS(cycles),
         );
       }
     }
@@ -234,9 +233,9 @@ export class ProductService {
     });
     if (parentProducts.length > 0) {
       throw new BadRequestException(
-        `Please remove products that references this with ID(s): ${parentProducts
-          .map((p) => p.id)
-          .join(', ')}`,
+        ERROR_MESSAGE_FORMATS.PRODUCT.HAS_PARENT_REFERENCE(
+          parentProducts.map((p) => p.id),
+        ),
       );
     }
     return await this.productRepository.remove(product);
@@ -367,7 +366,7 @@ export class ProductService {
     const sameNameProduct = await this.findOneByName(dto.name);
     if (sameNameProduct) {
       throw new BadRequestException(
-        `Product with id: ${sameNameProduct.id} has the same name!`,
+        ERROR_MESSAGE_FORMATS.PRODUCT.SAME_NAME(sameNameProduct.id),
       );
     }
   }

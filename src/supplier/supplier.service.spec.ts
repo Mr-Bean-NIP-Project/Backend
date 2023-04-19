@@ -5,6 +5,7 @@ import { TYPEORM_TEST_IMPORTS } from '../common/typeorm_test_helper';
 import { MaterialService } from '../material/material.service';
 import { SupplierService } from './supplier.service';
 import { CreateSupplierDto } from './dto/create-supplier.dto';
+import ERROR_MESSAGE_FORMATS from '../common/error_message_formats';
 
 describe('SupplierService', () => {
   let supplierService: SupplierService;
@@ -86,29 +87,35 @@ describe('SupplierService', () => {
   });
 
   it('should fail to delete supplier with existing materials', async () => {
+    const createdSupplier = await supplierService.create({ name: 'NTUC' });
+    await materialService.create({
+      name: 'mat1',
+      energy: '10',
+      supplier_id: createdSupplier.id,
+    });
     const t = async () => {
-      const createdSupplier = await supplierService.create({ name: 'NTUC' });
-      await materialService.create({
-        name: 'mat1',
-        energy: '10',
-        supplier_id: createdSupplier.id,
-      });
       return await supplierService.remove(createdSupplier.id);
     };
 
     await expect(t).rejects.toThrowError(BadRequestException);
+    await expect(t).rejects.toThrowError(
+      ERROR_MESSAGE_FORMATS.SUPPLIER.TAGGED_MATERIALS(1),
+    );
   });
 
   it('should prevent the creation of same name supplier', async () => {
+    const dto: CreateSupplierDto = {
+      name: 'NTUC',
+    };
+    const s1 = await supplierService.create(dto);
     const t = async () => {
-      const dto: CreateSupplierDto = {
-        name: 'NTUC',
-      };
-      await supplierService.create(dto);
       return await supplierService.create(dto);
     };
 
     await expect(t).rejects.toThrowError(BadRequestException);
+    await expect(t).rejects.toThrowError(
+      ERROR_MESSAGE_FORMATS.SUPPLIER.SAME_NAME(s1.id),
+    );
   });
 
   it('should prevent the updating to same name', async () => {
@@ -125,5 +132,8 @@ describe('SupplierService', () => {
     };
 
     await expect(t).rejects.toThrowError(BadRequestException);
+    await expect(t).rejects.toThrowError(
+      ERROR_MESSAGE_FORMATS.SUPPLIER.SAME_NAME(s1.id),
+    );
   });
 });

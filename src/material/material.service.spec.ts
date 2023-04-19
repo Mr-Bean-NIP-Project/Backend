@@ -6,6 +6,7 @@ import { Material } from './entities/material.entity';
 import { MaterialService } from './material.service';
 import { initializeTransactionalContext } from 'typeorm-transactional';
 import { CreateMaterialDto } from './dto/create-material.dto';
+import ERROR_MESSAGE_FORMATS from '../common/error_message_formats';
 
 describe('MaterialService', () => {
   let materialService: MaterialService;
@@ -148,16 +149,19 @@ describe('MaterialService', () => {
 
   it('should prevent creation of same name material', async () => {
     const createdSupplier = await supplierService.create({ name: 'NTUC' });
+    const dto: CreateMaterialDto = {
+      name: 'mat1',
+      supplier_id: createdSupplier.id,
+    };
+    const m1 = await materialService.create(dto);
     const t = async () => {
-      const dto: CreateMaterialDto = {
-        name: 'mat1',
-        supplier_id: createdSupplier.id,
-      };
-      await materialService.create(dto);
       return await materialService.create(dto);
     };
 
     await expect(t).rejects.toThrowError(BadRequestException);
+    await expect(t).rejects.toThrowError(
+      ERROR_MESSAGE_FORMATS.MATERIAL.SAME_NAME(m1.id),
+    );
   });
 
   it('should prevent the updating to same name', async () => {
@@ -177,5 +181,8 @@ describe('MaterialService', () => {
     };
 
     await expect(t).rejects.toThrowError(BadRequestException);
+    await expect(t).rejects.toThrowError(
+      ERROR_MESSAGE_FORMATS.MATERIAL.SAME_NAME(m1.id),
+    );
   });
 });
