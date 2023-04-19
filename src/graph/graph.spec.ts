@@ -69,4 +69,27 @@ describe('Graph', () => {
     expect(cycles).toHaveLength(1);
     expect(expectedCycles).toEqual(cycles);
   });
+
+  it('should detect a cycle from a wide base', () => {
+    const graph = new Graph<number>();
+
+    // very wide base here
+    for (let child = 2; child < 10000; child++) {
+        graph.addEdge({ from: 1, to: child });
+    }
+    graph.addEdge({ from: 2, to: -11 });
+    graph.addEdge({ from: 2, to: -12 });
+    graph.addEdge({ from: 2, to: -13 });
+    graph.addEdge({ from: -13, to: 1 });
+
+    const expectedCycles: Edge<number>[] = [
+      {
+        from: -13,
+        to: 1,
+      },
+    ];
+    const cycles = graph.getCycles();
+    expect(cycles).toHaveLength(1);
+    expect(expectedCycles).toEqual(cycles);
+  });
 });
