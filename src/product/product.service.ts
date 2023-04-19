@@ -267,7 +267,10 @@ export class ProductService {
     productId?: number;
   }): Promise<boolean> {
     if (!dto || !dto.sub_product_ids) return false;
-    if (productId && dto.sub_product_ids.includes(productId)) {
+
+    const subProductIds = dto.sub_product_ids;
+
+    if (productId && subProductIds.includes(productId)) {
       // trivial case, if there's a cycle with itself
       return true;
     }
