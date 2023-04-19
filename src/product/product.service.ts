@@ -65,10 +65,6 @@ export class ProductService {
       );
     }
 
-    if (await this.hasCycle({ dto: createProductDto })) {
-      throw new BadRequestException(`Cyclic sub product not allowed!`);
-    }
-
     const { material_id_and_quantity, sub_product_ids, ...dao } =
       createProductDto;
     const product = await this.productRepository.save({
@@ -264,7 +260,7 @@ export class ProductService {
     productId,
   }: {
     dto: UpdateProductDto;
-    productId?: number;
+    productId: number;
   }): Promise<boolean> {
     if (!dto || !dto.sub_product_ids) return false;
 
