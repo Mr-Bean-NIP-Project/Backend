@@ -18,9 +18,14 @@ export class Graph<T> {
     let cycles: Edge<T>[] = [];
     for (const u of [...this.adjLists.keys()]) {
       if (!discovered.has(u) && !finished.has(u)) {
-        cycles = cycles.concat(
-          getCyclesHelper({ G: this, u, discovered, finished }),
-        );
+        for (const cycle of getCyclesHelper<T>({
+          G: this,
+          u,
+          discovered,
+          finished,
+        })) {
+          cycles.push(cycle);
+        }
       }
     }
 
@@ -53,9 +58,14 @@ function getCyclesHelper<T>({
     }
 
     if (!finished.has(v)) {
-      cycles = cycles.concat(
-        getCyclesHelper({ G, u: v, discovered, finished }),
-      );
+      for (const cycle of getCyclesHelper<T>({
+        G,
+        u: v,
+        discovered,
+        finished,
+      })) {
+        cycles.push(cycle);
+      }
     }
   }
 
