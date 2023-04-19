@@ -373,7 +373,7 @@ function calculateNutritionPerServingFromMaterialProduct(
 
   const initialNutrition: Nutrition = new Nutrition();
   for (const { nutrition, quantity } of nutritionQuantities) {
-    initialNutrition.addOtherNutrition(nutrition, quantity);
+    initialNutrition.add(nutrition, quantity);
   }
 
   return initialNutrition;
@@ -424,7 +424,7 @@ async function calculateNutritionPerServingFromProduct({
   );
 
   return [materialNutrition, ...subProductNutritions].reduce((acc, cur) =>
-    acc.addOtherNutrition(cur),
+    acc.add(cur),
   );
 }
 // ====================================================================================================================================

@@ -48,7 +48,7 @@ export class Nutrition {
     return Object.assign(Object.create(Object.getPrototypeOf(this)), this);
   }
 
-  addOtherNutrition(other: Nutrition, quantityOfInput: number = 1): Nutrition {
+  add(other: Nutrition, quantityOfInput: number = 1): Nutrition {
     for (const field in this) {
       const sField = field as string;
       this[sField] = Big(this[sField]).add(
