@@ -3,7 +3,6 @@ coverage:
     project:
       default:
         target: 70%    # the required coverage value
-        threshold: 5%  # the leniency in hitting the target
     patch:
       default:
-        target: 70%
+        target: 70%    # the required coverage value
