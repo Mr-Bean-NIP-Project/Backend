@@ -10,16 +10,18 @@ on:
 jobs:
   build:
 
-    runs-on: ubuntu-latest
 
     strategy:
       matrix:
-        node-version: [18.x]
+        node-version: [14.x, 16.x, 18.x]
+        os: [ubuntu-latest, windows-latest]
         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
+    
+    runs-on: ${{ matrix.os }}
 
     steps:
     - uses: actions/checkout@v3
-    - name: Use Node.js ${{ matrix.node-version }}
+    - name: Use Node.js ${{ matrix.node-version }} with ${{ matrix.os }}
       uses: actions/setup-node@v3
       with:
         node-version: ${{ matrix.node-version }}
@@ -29,6 +31,7 @@ jobs:
     - run: npm run test:cov
 
     - uses: codecov/codecov-action@v3
+      if: matrix.os == 'ubuntu-latest' && matrix.node-version == '18.x' # only upload once
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
         fail_ci_if_error: false # incase run out of free uploads
