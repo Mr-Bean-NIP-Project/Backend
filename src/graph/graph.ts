@@ -25,6 +25,7 @@ export class Graph<T> {
       }
     }
     return copy;
+    
   }
 
   addEdge({ from, to }: Edge<T>): Graph<T> {
