@@ -58,7 +58,7 @@ export class Product {
 
   @OneToMany(() => MaterialProduct, (mp) => mp.product)
   @JoinColumn({ name: 'product_id' })
-  materials: MaterialProduct[];
+  material_product: MaterialProduct[];
 
   @AfterLoad()
   @AfterInsert()
@@ -66,12 +66,12 @@ export class Product {
   initializeArrays() {
     // we wanna init arrays as empty array if nothing is tagged to it
     if (!this.sub_products) this.sub_products = [];
-    if (!this.materials) this.materials = [];
+    if (!this.material_product) this.material_product = [];
     return this;
   }
 
   emptySubProductAndMaterialProduct() {
-    this.materials = [];
+    this.material_product = [];
     this.sub_products = [];
     return this;
   }

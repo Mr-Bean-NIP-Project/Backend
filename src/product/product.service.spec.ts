@@ -305,11 +305,11 @@ describe('ProductService', () => {
     const productInDb = await productService.findOne(p2.id);
     expect(p2).toEqual(productInDb);
     expect(p1.sub_products).toHaveLength(dto1.sub_product_ids.length);
-    expect(p1.materials).toHaveLength(
+    expect(p1.material_product).toHaveLength(
       dto1.material_id_and_quantity.length,
     );
     expect(p2.sub_products).toHaveLength(dto2.sub_product_ids.length);
-    expect(p2.materials).toHaveLength(
+    expect(p2.material_product).toHaveLength(
       dto2.material_id_and_quantity.length,
     );
   });
@@ -348,15 +348,15 @@ describe('ProductService', () => {
     expect(p2NoSubProduct).toEqual(p3NoSubProduct);
     expect(p3).toEqual(productInDb);
     expect(p1.sub_products).toHaveLength(dto1.sub_product_ids.length);
-    expect(p1.materials).toHaveLength(
+    expect(p1.material_product).toHaveLength(
       dto1.material_id_and_quantity.length,
     );
     expect(p2.sub_products).toHaveLength(dto2.sub_product_ids.length);
-    expect(p2.materials).toHaveLength(
+    expect(p2.material_product).toHaveLength(
       dto2.material_id_and_quantity.length,
     );
     expect(p3.sub_products).toHaveLength(updateDto.sub_product_ids.length);
-    expect(p3.materials).toHaveLength(
+    expect(p3.material_product).toHaveLength(
       updateDto.material_id_and_quantity.length,
     );
   });
@@ -390,17 +390,17 @@ describe('ProductService', () => {
     const p2 = await productService.update(p1.id, updateDto);
 
     const productInDb = await productService.findOne(p2.id);
-    const { materials: mp1, ...p1NoMp } = p1;
-    const { materials: mp2, ...p2NoMp } = p2;
+    const { material_product: mp1, ...p1NoMp } = p1;
+    const { material_product: mp2, ...p2NoMp } = p2;
     // check if all other fields are the same
     expect(p1NoMp).toEqual(p2NoMp);
     expect(p2).toEqual(productInDb);
     expect(p1.sub_products).toHaveLength(dto1.sub_product_ids.length);
-    expect(p1.materials).toHaveLength(
+    expect(p1.material_product).toHaveLength(
       dto1.material_id_and_quantity.length,
     );
     expect(p2.sub_products).toHaveLength(updateDto.sub_product_ids.length);
-    expect(p2.materials).toHaveLength(
+    expect(p2.material_product).toHaveLength(
       updateDto.material_id_and_quantity.length,
     );
   });
@@ -445,12 +445,12 @@ describe('ProductService', () => {
 
     const productInDb = await productService.findOne(updatedProduct.id);
     const {
-      materials: mp1,
+      material_product: mp1,
       sub_products: sp1,
       ...updatedProductNoMpNoSubProduct
     } = updatedProduct;
     const {
-      materials: mp2,
+      material_product: mp2,
       sub_products: sp2,
       ...p2NoMpNoSubProduct
     } = p2;
@@ -458,17 +458,17 @@ describe('ProductService', () => {
     expect(updatedProductNoMpNoSubProduct).toEqual(p2NoMpNoSubProduct);
     expect(updatedProduct).toEqual(productInDb);
     expect(p1.sub_products).toHaveLength(dto1.sub_product_ids.length);
-    expect(p1.materials).toHaveLength(
+    expect(p1.material_product).toHaveLength(
       dto1.material_id_and_quantity.length,
     );
     expect(p2.sub_products).toHaveLength(dto2.sub_product_ids.length);
-    expect(p2.materials).toHaveLength(
+    expect(p2.material_product).toHaveLength(
       dto2.material_id_and_quantity.length,
     );
     expect(updatedProduct.sub_products).toHaveLength(
       updateDto.sub_product_ids.length,
     );
-    expect(updatedProduct.materials).toHaveLength(
+    expect(updatedProduct.material_product).toHaveLength(
       updateDto.material_id_and_quantity.length,
     );
   });
@@ -537,9 +537,9 @@ describe('ProductService', () => {
 
     expect(updatedProduct).toEqual(productInDb);
 
-    // also need to check if materialss are unchanged
-    expect(updatedProduct.materials).toEqual(p1.materials);
-    expect(productInDb.materials).toEqual(p1.materials);
+    // also need to check if material_products are unchanged
+    expect(updatedProduct.material_product).toEqual(p1.material_product);
+    expect(productInDb.material_product).toEqual(p1.material_product);
   });
 
   it('should update successfully without wiping previous material and subproducts', async () => {
@@ -587,9 +587,9 @@ describe('ProductService', () => {
 
     expect(updatedProduct).toEqual(productInDb);
 
-    // also need to check if materialss are unchanged
-    expect(updatedProduct.materials).toEqual(p2.materials);
-    expect(productInDb.materials).toEqual(p2.materials);
+    // also need to check if material_products are unchanged
+    expect(updatedProduct.material_product).toEqual(p2.material_product);
+    expect(productInDb.material_product).toEqual(p2.material_product);
     expect(updatedProduct.sub_products).toEqual(p2.sub_products);
     expect(productInDb.sub_products).toEqual(p2.sub_products);
   });
@@ -680,9 +680,9 @@ describe('ProductService', () => {
 
     expect(updatedProduct).toEqual(productInDb);
 
-    // also need to check if materialss are unchanged
-    expect(updatedProduct.materials).not.toEqual(p1.materials);
-    expect(productInDb.materials).not.toEqual(p1.materials);
+    // also need to check if material_products are unchanged
+    expect(updatedProduct.material_product).not.toEqual(p1.material_product);
+    expect(productInDb.material_product).not.toEqual(p1.material_product);
   });
 
   it('should fail to update a product that does not exist', async () => {
