@@ -1,6 +1,7 @@
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { initializeTransactionalContext } from 'typeorm-transactional';
+import ERROR_MESSAGE_FORMATS from '../common/error_message_formats';
 import { TYPEORM_TEST_IMPORTS } from '../common/typeorm_test_helper';
 import { CreateMaterialDto } from '../material/dto/create-material.dto';
 import { MaterialModule } from '../material/material.module';
@@ -10,10 +11,9 @@ import { SupplierService } from '../supplier/supplier.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { Nutrition } from './dto/nip.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
-import { SERVING_UNIT } from './entities/product.entity';
+import { Product, SERVING_UNIT } from './entities/product.entity';
 import { ProductModule } from './product.module';
 import { ProductService } from './product.service';
-import ERROR_MESSAGE_FORMATS from '../common/error_message_formats';
 
 describe('ProductService', () => {
   let productService: ProductService;
@@ -1265,5 +1265,35 @@ describe('ProductService', () => {
       return await productService.update(p4.id, { ...updateDto });
     };
     await expect(t4).rejects.toThrowError(BadRequestException);
+  });
+
+  it('should update updated_at', async () => {
+    const dto1: CreateProductDto = {
+      name: 'p1',
+      serving_size: 200,
+      serving_unit: SERVING_UNIT.G,
+      serving_per_package: 1,
+      material_id_and_quantity: [],
+      sub_product_ids: [],
+    };
+
+    const updateDto: UpdateProductDto = {
+      name: 'p2',
+    };
+
+    const p1 = await productService.create(dto1);
+
+    // wait for 1 second before updating
+    const p2: Product = await new Promise((resolve, reject) => {
+      setTimeout(async () => {
+        resolve(await productService.update(p1.id, updateDto));
+      }, 1000);
+    });
+
+    const productInDb = await productService.findOne(p1.id);
+
+    expect(p2).toBeDefined();
+    expect(p2.created_at).not.toEqual(p2.updated_at);
+    expect(productInDb.created_at).not.toEqual(productInDb.updated_at);
   });
 });
