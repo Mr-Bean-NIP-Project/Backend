@@ -1,12 +1,13 @@
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
+import { initializeTransactionalContext } from 'typeorm-transactional';
+import ERROR_MESSAGE_FORMATS from '../common/error_message_formats';
 import { TYPEORM_TEST_IMPORTS } from '../common/typeorm_test_helper';
 import { SupplierService } from '../supplier/supplier.service';
+import { CreateMaterialDto } from './dto/create-material.dto';
+import { UpdateMaterialDto } from './dto/update-material.dto';
 import { Material } from './entities/material.entity';
 import { MaterialService } from './material.service';
-import { initializeTransactionalContext } from 'typeorm-transactional';
-import { CreateMaterialDto } from './dto/create-material.dto';
-import ERROR_MESSAGE_FORMATS from '../common/error_message_formats';
 
 describe('MaterialService', () => {
   let materialService: MaterialService;
@@ -184,5 +185,32 @@ describe('MaterialService', () => {
     await expect(t).rejects.toThrowError(
       ERROR_MESSAGE_FORMATS.MATERIAL.SAME_NAME(m1.id),
     );
+  });
+
+  it('should update updated_at', async () => {
+    const createdSupplier = await supplierService.create({ name: 'NTUC' });
+    const dto1: CreateMaterialDto = {
+      name: 'm1',
+      supplier_id: createdSupplier.id,
+    };
+
+    const updateDto: UpdateMaterialDto = {
+      name: 'm2',
+    };
+
+    const m1 = await materialService.create(dto1);
+
+    // wait for 1 second before updating
+    const m2: Material = await new Promise((resolve, reject) => {
+      setTimeout(async () => {
+        resolve(await materialService.update(m1.id, updateDto));
+      }, 1000);
+    });
+
+    const materialInDb = await materialService.findOne(m1.id);
+
+    expect(m2).toBeDefined();
+    expect(m2.created_at).not.toEqual(m2.updated_at);
+    expect(materialInDb.created_at).not.toEqual(materialInDb.updated_at);
   });
 });

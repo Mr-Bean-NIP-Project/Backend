@@ -1,11 +1,13 @@
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { initializeTransactionalContext } from 'typeorm-transactional';
+import ERROR_MESSAGE_FORMATS from '../common/error_message_formats';
 import { TYPEORM_TEST_IMPORTS } from '../common/typeorm_test_helper';
 import { MaterialService } from '../material/material.service';
-import { SupplierService } from './supplier.service';
 import { CreateSupplierDto } from './dto/create-supplier.dto';
-import ERROR_MESSAGE_FORMATS from '../common/error_message_formats';
+import { UpdateSupplierDto } from './dto/update-supplier.dto';
+import { Supplier } from './entities/supplier.entity';
+import { SupplierService } from './supplier.service';
 
 describe('SupplierService', () => {
   let supplierService: SupplierService;
@@ -135,5 +137,30 @@ describe('SupplierService', () => {
     await expect(t).rejects.toThrowError(
       ERROR_MESSAGE_FORMATS.SUPPLIER.SAME_NAME(s1.id),
     );
+  });
+
+  it('should update updated_at', async () => {
+    const dto1: CreateSupplierDto = {
+      name: 'NTUC',
+    };
+
+    const updateDto: UpdateSupplierDto = {
+      name: 'NTUC2',
+    };
+
+    const s1 = await supplierService.create(dto1);
+
+    // wait for 1 second before updating
+    const s2: Supplier = await new Promise((resolve, reject) => {
+      setTimeout(async () => {
+        resolve(await supplierService.update(s1.id, updateDto));
+      }, 1000);
+    });
+
+    const supplierInDb = await supplierService.findOne(s1.id);
+
+    expect(s2).toBeDefined();
+    expect(s2.created_at).not.toEqual(s2.updated_at);
+    expect(supplierInDb.created_at).not.toEqual(supplierInDb.updated_at);
   });
 });
