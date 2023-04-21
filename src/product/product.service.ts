@@ -90,7 +90,7 @@ export class ProductService {
       sub_products: mappedSubProducts.map((sp) =>
         sp.emptySubProductAndMaterialProduct(),
       ),
-      material_product: createdMaterialProduct.map((mp) => mp.emptyNested()),
+      materials: createdMaterialProduct.map((mp) => mp.emptyNested()),
     };
   }
 
@@ -99,7 +99,7 @@ export class ProductService {
     return await this.productRepository.find({
       relations: {
         sub_products: true,
-        material_product: {
+        materials: {
           material: true,
         },
       },
@@ -111,7 +111,7 @@ export class ProductService {
     return await this.productRepository.findOne({
       relations: {
         sub_products: true,
-        material_product: {
+        materials: {
           material: true,
         },
       },
@@ -124,7 +124,7 @@ export class ProductService {
     return await this.productRepository.findOne({
       relations: {
         sub_products: true,
-        material_product: {
+        materials: {
           material: true,
         },
       },
@@ -201,7 +201,7 @@ export class ProductService {
       const createdMaterialProduct = await this.materialProductRepository.save(
         materialProduct,
       );
-      dao.material_product = createdMaterialProduct.map((mp) =>
+      dao.materials = createdMaterialProduct.map((mp) =>
         mp.emptyNested(),
       );
     }
@@ -420,7 +420,7 @@ async function calculateNutritionPerServingFromProduct({
   productRepository: Repository<Product>;
 }): Promise<Nutrition> {
   const materialNutrition: Nutrition =
-    calculateNutritionPerServingFromMaterialProduct(product.material_product);
+    calculateNutritionPerServingFromMaterialProduct(product.materials);
 
   if (!product.sub_products || product.sub_products.length == 0) {
     // base case, when product doesn't have subproducts, it's a leaf node
@@ -433,7 +433,7 @@ async function calculateNutritionPerServingFromProduct({
       return await productRepository.findOne({
         relations: {
           sub_products: true,
-          material_product: {
+          materials: {
             material: true,
           },
         },
@@ -491,7 +491,7 @@ async function constructGraph({
         return await productRepository.findOne({
           relations: {
             sub_products: true,
-            material_product: {
+            materials: {
               material: true,
             },
           },

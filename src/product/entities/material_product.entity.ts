@@ -59,7 +59,7 @@ export class MaterialProduct {
   initializeArrays() {
     // we wanna init arrays as empty array if nothing is tagged to it
     if (this.product) {
-      if (!this.product.material_product) this.product.material_product = [];
+      if (!this.product.materials) this.product.materials = [];
       if (!this.product.sub_products) this.product.sub_products = [];
     }
 
