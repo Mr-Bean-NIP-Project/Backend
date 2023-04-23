@@ -7,12 +7,11 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import ERROR_MESSAGE_FORMATS from '../common/error_message_formats';
+import { MaterialService } from '../material/material.service';
 import { CreateSupplierDto } from './dto/create-supplier.dto';
 import { UpdateSupplierDto } from './dto/update-supplier.dto';
 import { Supplier } from './entities/supplier.entity';
-import { MaterialService } from '../material/material.service';
-import { Propagation, Transactional } from 'typeorm-transactional';
-import ERROR_MESSAGE_FORMATS from '../common/error_message_formats';
 
 @Injectable()
 export class SupplierService {
@@ -21,31 +20,26 @@ export class SupplierService {
     private readonly supplierRepository: Repository<Supplier>,
     @Inject(forwardRef(() => MaterialService))
     private readonly materialService: MaterialService,
-  ) {}
+  ) { }
 
-  @Transactional({ propagation: Propagation.NESTED })
   async create(createSupplierDto: CreateSupplierDto) {
     await this.checkNoSameName(createSupplierDto);
     const newSupplier = this.supplierRepository.create(createSupplierDto);
     return await this.supplierRepository.save(newSupplier);
   }
 
-  @Transactional({ propagation: Propagation.NESTED })
   async findAll() {
     return await this.supplierRepository.find();
   }
 
-  @Transactional({ propagation: Propagation.NESTED })
   async findOne(id: number) {
     return await this.supplierRepository.findOneBy({ id });
   }
 
-  @Transactional({ propagation: Propagation.NESTED })
   async findOneByName(name: string) {
     return await this.supplierRepository.findOneBy({ name });
   }
 
-  @Transactional({ propagation: Propagation.NESTED })
   async update(id: number, updateSupplierDto: UpdateSupplierDto) {
     await this.checkNoSameName(updateSupplierDto);
     const supplier = await this.findOne(id);
@@ -55,7 +49,6 @@ export class SupplierService {
     return this.supplierRepository.save({ ...supplier, ...updateSupplierDto });
   }
 
-  @Transactional({ propagation: Propagation.NESTED })
   async remove(id: number) {
     const supplier = await this.findOne(id);
     if (!supplier) {
