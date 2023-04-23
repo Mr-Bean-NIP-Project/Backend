@@ -5,7 +5,8 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Transactional } from 'typeorm-transactional';
+import ERROR_MESSAGE_FORMATS from '../common/error_message_formats';
+import { Edge, Graph } from '../graph/graph';
 import { Material } from '../material/entities/material.entity';
 import { MaterialService } from '../material/material.service';
 import {
@@ -16,8 +17,6 @@ import { NipDto, Nutrition, NutritionQuantity } from './dto/nip.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { MaterialProduct } from './entities/material_product.entity';
 import { Product } from './entities/product.entity';
-import { Edge, Graph } from '../graph/graph';
-import ERROR_MESSAGE_FORMATS from '../common/error_message_formats';
 
 @Injectable()
 export class ProductService {
@@ -27,9 +26,8 @@ export class ProductService {
     @InjectRepository(MaterialProduct)
     private readonly materialProductRepository: Repository<MaterialProduct>,
     private readonly materialService: MaterialService,
-  ) {}
+  ) { }
 
-  @Transactional()
   async create(createProductDto: CreateProductDto) {
     await this.checkNoSameName(createProductDto);
     const materialIds = (createProductDto.material_id_and_quantity ?? []).map(
@@ -129,7 +127,6 @@ export class ProductService {
     });
   }
 
-  @Transactional()
   async update(id: number, updateProductDto: UpdateProductDto) {
     const hasSubProductUpdate: boolean = 'sub_product_ids' in updateProductDto;
     const hasMaterialUpdate: boolean =
@@ -215,7 +212,6 @@ export class ProductService {
     return newProduct;
   }
 
-  @Transactional()
   async remove(id: number) {
     const product = await this.findOneOrThrow(id);
     const parentProducts = await this.productRepository.find({
@@ -238,7 +234,6 @@ export class ProductService {
     return await this.productRepository.remove(product);
   }
 
-  @Transactional()
   async getNip(id: number): Promise<NipDto> {
     const product: Product = await this.findOneOrThrow(id);
     const nutritionPerServing: Nutrition =

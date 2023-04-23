@@ -7,12 +7,11 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import ERROR_MESSAGE_FORMATS from '../common/error_message_formats';
 import { SupplierService } from '../supplier/supplier.service';
 import { CreateMaterialDto } from './dto/create-material.dto';
 import { UpdateMaterialDto } from './dto/update-material.dto';
 import { Material } from './entities/material.entity';
-import { Transactional } from 'typeorm-transactional';
-import ERROR_MESSAGE_FORMATS from '../common/error_message_formats';
 
 @Injectable()
 export class MaterialService {
@@ -21,9 +20,8 @@ export class MaterialService {
     private materialRepository: Repository<Material>,
     @Inject(forwardRef(() => SupplierService))
     private supplierService: SupplierService,
-  ) {}
+  ) { }
 
-  @Transactional()
   async create(createMaterialDto: CreateMaterialDto) {
     const supplier = await this.supplierService.findOne(
       createMaterialDto.supplier_id,
@@ -49,7 +47,6 @@ export class MaterialService {
     return await this.materialRepository.findOneBy({ name });
   }
 
-  @Transactional()
   async update(id: number, updateMaterialDto: UpdateMaterialDto) {
     const material = await this.findOne(id);
 
@@ -71,7 +68,6 @@ export class MaterialService {
     return this.materialRepository.save({ ...material, ...dao, supplier });
   }
 
-  @Transactional()
   async remove(id: number) {
     const material = await this.findOne(id);
     if (!material) {
