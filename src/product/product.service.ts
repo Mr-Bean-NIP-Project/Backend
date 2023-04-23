@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Transactional } from 'typeorm-transactional';
+import { Propagation, Transactional } from 'typeorm-transactional';
 import { Material } from '../material/entities/material.entity';
 import { MaterialService } from '../material/material.service';
 import {
@@ -29,7 +29,7 @@ export class ProductService {
     private readonly materialService: MaterialService,
   ) {}
 
-  @Transactional()
+  @Transactional({ propagation: Propagation.NESTED })
   async create(createProductDto: CreateProductDto) {
     await this.checkNoSameName(createProductDto);
     const materialIds = (createProductDto.material_id_and_quantity ?? []).map(
@@ -94,6 +94,7 @@ export class ProductService {
     };
   }
 
+  @Transactional({ propagation: Propagation.NESTED })
   async findAll() {
     return await this.productRepository.find({
       relations: {
@@ -105,6 +106,7 @@ export class ProductService {
     });
   }
 
+  @Transactional({ propagation: Propagation.NESTED })
   async findOne(id: number) {
     return await this.productRepository.findOne({
       relations: {
@@ -117,6 +119,7 @@ export class ProductService {
     });
   }
 
+  @Transactional({ propagation: Propagation.NESTED })
   async findOneByName(name: string) {
     return await this.productRepository.findOne({
       relations: {
@@ -129,7 +132,7 @@ export class ProductService {
     });
   }
 
-  @Transactional()
+  @Transactional({ propagation: Propagation.NESTED })
   async update(id: number, updateProductDto: UpdateProductDto) {
     const hasSubProductUpdate: boolean = 'sub_product_ids' in updateProductDto;
     const hasMaterialUpdate: boolean =
@@ -215,7 +218,7 @@ export class ProductService {
     return newProduct;
   }
 
-  @Transactional()
+  @Transactional({ propagation: Propagation.NESTED })
   async remove(id: number) {
     const product = await this.findOneOrThrow(id);
     const parentProducts = await this.productRepository.find({
@@ -238,7 +241,7 @@ export class ProductService {
     return await this.productRepository.remove(product);
   }
 
-  @Transactional()
+  @Transactional({ propagation: Propagation.NESTED })
   async getNip(id: number): Promise<NipDto> {
     const product: Product = await this.findOneOrThrow(id);
     const nutritionPerServing: Nutrition =

@@ -11,7 +11,7 @@ import { SupplierService } from '../supplier/supplier.service';
 import { CreateMaterialDto } from './dto/create-material.dto';
 import { UpdateMaterialDto } from './dto/update-material.dto';
 import { Material } from './entities/material.entity';
-import { Transactional } from 'typeorm-transactional';
+import { Propagation, Transactional } from 'typeorm-transactional';
 import ERROR_MESSAGE_FORMATS from '../common/error_message_formats';
 
 @Injectable()
@@ -23,7 +23,7 @@ export class MaterialService {
     private supplierService: SupplierService,
   ) {}
 
-  @Transactional()
+  @Transactional({ propagation: Propagation.NESTED })
   async create(createMaterialDto: CreateMaterialDto) {
     const supplier = await this.supplierService.findOne(
       createMaterialDto.supplier_id,
@@ -37,19 +37,22 @@ export class MaterialService {
     return await this.materialRepository.save(newMaterial);
   }
 
+  @Transactional({ propagation: Propagation.NESTED })
   async findAll() {
     return await this.materialRepository.find();
   }
 
+  @Transactional({ propagation: Propagation.NESTED })
   async findOne(id: number) {
     return await this.materialRepository.findOneBy({ id });
   }
 
+  @Transactional({ propagation: Propagation.NESTED })
   async findOneByName(name: string) {
     return await this.materialRepository.findOneBy({ name });
   }
 
-  @Transactional()
+  @Transactional({ propagation: Propagation.NESTED })
   async update(id: number, updateMaterialDto: UpdateMaterialDto) {
     const material = await this.findOne(id);
 
@@ -71,7 +74,7 @@ export class MaterialService {
     return this.materialRepository.save({ ...material, ...dao, supplier });
   }
 
-  @Transactional()
+  @Transactional({ propagation: Propagation.NESTED })
   async remove(id: number) {
     const material = await this.findOne(id);
     if (!material) {
