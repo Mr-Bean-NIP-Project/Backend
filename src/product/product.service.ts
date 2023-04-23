@@ -94,7 +94,6 @@ export class ProductService {
     };
   }
 
-  @Transactional()
   async findAll() {
     return await this.productRepository.find({
       relations: {
@@ -106,7 +105,6 @@ export class ProductService {
     });
   }
 
-  @Transactional()
   async findOne(id: number) {
     return await this.productRepository.findOne({
       relations: {
@@ -119,7 +117,6 @@ export class ProductService {
     });
   }
 
-  @Transactional()
   async findOneByName(name: string) {
     return await this.productRepository.findOne({
       relations: {

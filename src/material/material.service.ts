@@ -37,17 +37,14 @@ export class MaterialService {
     return await this.materialRepository.save(newMaterial);
   }
 
-  @Transactional()
   async findAll() {
     return await this.materialRepository.find();
   }
 
-  @Transactional()
   async findOne(id: number) {
     return await this.materialRepository.findOneBy({ id });
   }
 
-  @Transactional()
   async findOneByName(name: string) {
     return await this.materialRepository.findOneBy({ name });
   }
@@ -83,7 +80,6 @@ export class MaterialService {
     return this.materialRepository.remove(material);
   }
 
-  @Transactional()
   async findTaggedSupplier(supplier_id: number) {
     return await this.materialRepository.find({
       where: {
