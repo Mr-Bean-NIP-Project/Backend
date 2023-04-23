@@ -30,17 +30,14 @@ export class SupplierService {
     return await this.supplierRepository.save(newSupplier);
   }
 
-  @Transactional()
   async findAll() {
     return await this.supplierRepository.find();
   }
 
-  @Transactional()
   async findOne(id: number) {
     return await this.supplierRepository.findOneBy({ id });
   }
 
-  @Transactional()
   async findOneByName(name: string) {
     return await this.supplierRepository.findOneBy({ name });
   }
