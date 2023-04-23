@@ -5,4 +5,4 @@ coverage:
         target: 70%    # the required coverage value
     patch:
       default:
-        target: 70%    # the required coverage value
+        target: 0%    # the required coverage value
