@@ -14,19 +14,16 @@ export class ProductController {
     return await this.productService.create(createProductDto);
   }
 
-  @Transactional()
   @Get()
   async findAll() {
     return await this.productService.findAll();
   }
 
-  @Transactional()
   @Get(':id')
   async findOne(@Param('id') id: string) {
     return await this.productService.findOne(+id);
   }
 
-  @Transactional()
   @Get(':id/nip')
   async getNip(@Param('id') id: string) {
     return await this.productService.getNip(+id);

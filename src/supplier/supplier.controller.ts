@@ -14,13 +14,11 @@ export class SupplierController {
     return await this.supplierService.create(createSupplierDto);
   }
 
-  @Transactional()
   @Get()
   async findAll() {
     return await this.supplierService.findAll();
   }
 
-  @Transactional()
   @Get(':id')
   async findOne(@Param('id') id: string) {
     return await this.supplierService.findOne(+id);

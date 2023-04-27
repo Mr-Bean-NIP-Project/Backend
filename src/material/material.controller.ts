@@ -14,13 +14,11 @@ export class MaterialController {
     return this.materialService.create(createMaterialDto);
   }
 
-  @Transactional()
   @Get()
   findAll() {
     return this.materialService.findAll();
   }
 
-  @Transactional()
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.materialService.findOne(+id);
