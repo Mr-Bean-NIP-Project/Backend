@@ -1,8 +1,16 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+} from '@nestjs/common';
 import { ProductService } from './product.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
-import { Transactional } from 'typeorm-transactional';
+import { Propagation, Transactional } from 'typeorm-transactional';
 
 @Controller('product')
 export class ProductController {
@@ -14,16 +22,19 @@ export class ProductController {
     return await this.productService.create(createProductDto);
   }
 
+  @Transactional({ propagation: Propagation.SUPPORTS })
   @Get()
   async findAll() {
     return await this.productService.findAll();
   }
 
+  @Transactional({ propagation: Propagation.SUPPORTS })
   @Get(':id')
   async findOne(@Param('id') id: string) {
     return await this.productService.findOne(+id);
   }
 
+  @Transactional({ propagation: Propagation.SUPPORTS })
   @Get(':id/nip')
   async getNip(@Param('id') id: string) {
     return await this.productService.getNip(+id);
@@ -31,7 +42,10 @@ export class ProductController {
 
   @Transactional()
   @Patch(':id')
-  async update(@Param('id') id: string, @Body() updateProductDto: UpdateProductDto) {
+  async update(
+    @Param('id') id: string,
+    @Body() updateProductDto: UpdateProductDto,
+  ) {
     return await this.productService.update(+id, updateProductDto);
   }
 

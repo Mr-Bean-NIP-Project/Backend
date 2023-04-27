@@ -2,7 +2,7 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { MaterialService } from './material.service';
 import { CreateMaterialDto } from './dto/create-material.dto';
 import { UpdateMaterialDto } from './dto/update-material.dto';
-import { Transactional } from 'typeorm-transactional';
+import { Propagation, Transactional } from 'typeorm-transactional';
 
 @Controller('material')
 export class MaterialController {
@@ -14,11 +14,13 @@ export class MaterialController {
     return this.materialService.create(createMaterialDto);
   }
 
+  @Transactional({ propagation: Propagation.SUPPORTS })
   @Get()
   findAll() {
     return this.materialService.findAll();
   }
 
+  @Transactional({ propagation: Propagation.SUPPORTS })
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.materialService.findOne(+id);
