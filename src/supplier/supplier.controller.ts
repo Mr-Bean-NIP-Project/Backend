@@ -2,7 +2,7 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { SupplierService } from './supplier.service';
 import { CreateSupplierDto } from './dto/create-supplier.dto';
 import { UpdateSupplierDto } from './dto/update-supplier.dto';
-import { Transactional } from 'typeorm-transactional';
+import { Propagation, Transactional } from 'typeorm-transactional';
 
 @Controller('supplier')
 export class SupplierController {
@@ -14,11 +14,13 @@ export class SupplierController {
     return await this.supplierService.create(createSupplierDto);
   }
 
+  @Transactional({ propagation: Propagation.SUPPORTS })
   @Get()
   async findAll() {
     return await this.supplierService.findAll();
   }
 
+  @Transactional({ propagation: Propagation.SUPPORTS })
   @Get(':id')
   async findOne(@Param('id') id: string) {
     return await this.supplierService.findOne(+id);
