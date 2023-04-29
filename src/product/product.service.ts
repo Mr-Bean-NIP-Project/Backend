@@ -67,13 +67,13 @@ export class ProductService {
       await this.productSubProductRepository.save(productSubProducts);
 
     // remove nested information to compact
-    return {
-      ...product,
-      material_product: createdMaterialProduct.map((mp) => mp.emptyNested()),
-      product_sub_products: createdProductSubProduct.map((psp) =>
-        psp.emptyNested(),
-      ),
-    };
+    product.material_product = createdMaterialProduct.map((mp) =>
+      mp.emptyNested(),
+    );
+    product.product_sub_products = createdProductSubProduct.map((psp) =>
+      psp.emptyNested(),
+    );
+    return product;
   }
 
   async findAll() {
