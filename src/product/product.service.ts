@@ -463,20 +463,26 @@ async function calculateNutritionPerServingFromProduct({
     return materialNutrition;
   }
 
+  const productIdToQuantity: Map<number, number> = new Map();
+  const psps = product.product_sub_products;
+  for (const sp of psps) {
+    productIdToQuantity.set(sp.child_id, sp.quantity);
+  }
+
   const subProducts: Product[] = await Promise.all(
-    product.product_sub_products.map(async (psp) => {
+    psps.map(async (psp) => {
       return await findOne(productRepository, psp.child_id);
     }),
   );
   // recursive case
   const subProductNutritions: Nutrition[] = await Promise.all(
-    subProducts.map(
-      async (product) =>
-        await calculateNutritionPerServingFromProduct({
-          product,
-          productRepository,
-        }),
-    ),
+    subProducts.map(async (product) => {
+      const n = await calculateNutritionPerServingFromProduct({
+        product,
+        productRepository,
+      });
+      return n.times(productIdToQuantity.get(product.id));
+    }),
   );
 
   return [materialNutrition, ...subProductNutritions].reduce((acc, cur) =>

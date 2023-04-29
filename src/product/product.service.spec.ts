@@ -983,19 +983,21 @@ describe('ProductService', () => {
     };
     const p1 = await productService.create(dto1);
 
+    const quantity = 2;
+
     const dto2: CreateProductDto = {
       name: 'p2',
       serving_size: 200,
       serving_unit: SERVING_UNIT.G,
       serving_per_package: 1,
       material_id_and_quantity: [],
-      sub_product_id_and_quantity: [{ sub_product_id: p1.id, quantity: 1 }],
+      sub_product_id_and_quantity: [{ sub_product_id: p1.id, quantity }],
     };
     const p2 = await productService.create(dto2);
 
     const expectedNutritionPerServing: Nutrition = new Nutrition();
-    expectedNutritionPerServing.energy = 1600;
-    expectedNutritionPerServing.protein = 1000;
+    expectedNutritionPerServing.energy = 1600 * quantity;
+    expectedNutritionPerServing.protein = 1000 * quantity;
 
     const nip = await productService.getNip(p2.id);
     expect(nip.name).toEqual(p2.name);
@@ -1047,19 +1049,21 @@ describe('ProductService', () => {
     };
     const p1 = await productService.create(dto1);
 
+    const quantity = 3;
+
     const dto2: CreateProductDto = {
       name: 'p2',
       serving_size: 200,
       serving_unit: SERVING_UNIT.G,
       serving_per_package: 1,
       material_id_and_quantity: [],
-      sub_product_id_and_quantity: [{ sub_product_id: p1.id, quantity: 1 }],
+      sub_product_id_and_quantity: [{ sub_product_id: p1.id, quantity }],
     };
     const p2 = await productService.create(dto2);
 
     const expectedNutritionPerServing: Nutrition = new Nutrition();
-    expectedNutritionPerServing.energy = 4600;
-    expectedNutritionPerServing.protein = 2800;
+    expectedNutritionPerServing.energy = 4600 * quantity;
+    expectedNutritionPerServing.protein = 2800 * quantity;
 
     const nip = await productService.getNip(p2.id);
     expect(nip.name).toEqual(p2.name);
@@ -1116,6 +1120,8 @@ describe('ProductService', () => {
     };
     const p2 = await productService.create(dto2);
 
+    const quantity = 5;
+
     const dto3: CreateProductDto = {
       name: 'p3',
       serving_size: 200,
@@ -1123,15 +1129,15 @@ describe('ProductService', () => {
       serving_per_package: 1,
       material_id_and_quantity: [],
       sub_product_id_and_quantity: [
-        { sub_product_id: p1.id, quantity: 1 },
-        { sub_product_id: p2.id, quantity: 1 },
+        { sub_product_id: p1.id, quantity },
+        { sub_product_id: p2.id, quantity },
       ],
     };
     const p3 = await productService.create(dto3);
 
     const expectedNutritionPerServing: Nutrition = new Nutrition();
-    expectedNutritionPerServing.energy = 3200;
-    expectedNutritionPerServing.protein = 2000;
+    expectedNutritionPerServing.energy = 3200 * quantity;
+    expectedNutritionPerServing.protein = 2000 * quantity;
 
     const nip = await productService.getNip(p3.id);
     expect(nip.name).toEqual(p3.name);
@@ -1202,6 +1208,8 @@ describe('ProductService', () => {
     };
     const p2 = await productService.create(dto2);
 
+    const quantity = 10;
+
     const dto3: CreateProductDto = {
       name: 'p3',
       serving_size: 200,
@@ -1209,15 +1217,15 @@ describe('ProductService', () => {
       serving_per_package: 1,
       material_id_and_quantity: [],
       sub_product_id_and_quantity: [
-        { sub_product_id: p1.id, quantity: 1 },
-        { sub_product_id: p2.id, quantity: 1 },
+        { sub_product_id: p1.id, quantity },
+        { sub_product_id: p2.id, quantity },
       ],
     };
     const p3 = await productService.create(dto3);
 
     const expectedNutritionPerServing: Nutrition = new Nutrition();
-    expectedNutritionPerServing.energy = 9200;
-    expectedNutritionPerServing.protein = 5600;
+    expectedNutritionPerServing.energy = 9200 * quantity;
+    expectedNutritionPerServing.protein = 5600 * quantity;
 
     const nip = await productService.getNip(p3.id);
     expect(nip.name).toEqual(p3.name);
