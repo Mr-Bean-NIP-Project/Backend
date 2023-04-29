@@ -42,10 +42,7 @@ export class ProductService {
 
     const { material_id_and_quantity, sub_product_id_and_quantity, ...dao } =
       createProductDto;
-    const product = await this.productRepository.save({
-      ...dao,
-      sub_products: mappedSubProducts,
-    });
+    const product = await this.productRepository.save(dao);
 
     const materialProduct = await this.getMaterialProduct(
       product,
@@ -89,7 +86,8 @@ export class ProductService {
   }
 
   async update(id: number, updateProductDto: UpdateProductDto) {
-    const hasSubProductUpdate: boolean = 'sub_product_id_and_quantity' in updateProductDto;
+    const hasSubProductUpdate: boolean =
+      'sub_product_id_and_quantity' in updateProductDto;
     const hasMaterialUpdate: boolean =
       'material_id_and_quantity' in updateProductDto;
 
