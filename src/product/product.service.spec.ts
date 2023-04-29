@@ -827,8 +827,8 @@ describe('ProductService', () => {
     expect(nip.serving_size).toEqual(p1.serving_size);
     expect(nip.serving_unit).toEqual(p1.serving_unit);
     expect(nip.serving_per_package).toEqual(p1.serving_per_package);
-    expect(nip.per_serving).toEqual(new Nutrition().stringifyAndAppendUnits());
-    expect(nip.per_hundred).toEqual(new Nutrition().stringifyAndAppendUnits());
+    expect(nip.per_serving).toEqual(new Nutrition().stringify());
+    expect(nip.per_hundred).toEqual(new Nutrition().stringify());
   });
 
   it('should return NIP for product tagged to 1 material', async () => {
@@ -864,14 +864,14 @@ describe('ProductService', () => {
     expect(nip.serving_unit).toEqual(p1.serving_unit);
     expect(nip.serving_per_package).toEqual(p1.serving_per_package);
     expect(nip.per_serving).toEqual(
-      expectedNutritionPerServing.copy().stringifyAndAppendUnits(),
+      expectedNutritionPerServing.copy().stringify(),
     );
     expect(nip.per_hundred).toEqual(
       expectedNutritionPerServing
         .copy()
         .divide(nip.serving_size)
         .times(100)
-        .stringifyAndAppendUnits(),
+        .stringify(),
     );
   });
 
@@ -918,14 +918,14 @@ describe('ProductService', () => {
     expect(nip.serving_unit).toEqual(p1.serving_unit);
     expect(nip.serving_per_package).toEqual(p1.serving_per_package);
     expect(nip.per_serving).toEqual(
-      expectedNutritionPerServing.copy().stringifyAndAppendUnits(),
+      expectedNutritionPerServing.copy().stringify(),
     );
     expect(nip.per_hundred).toEqual(
       expectedNutritionPerServing
         .copy()
         .divide(nip.serving_size)
         .times(100)
-        .stringifyAndAppendUnits(),
+        .stringify(),
     );
   });
 
@@ -974,14 +974,14 @@ describe('ProductService', () => {
     expect(nip.serving_unit).toEqual(p2.serving_unit);
     expect(nip.serving_per_package).toEqual(p2.serving_per_package);
     expect(nip.per_serving).toEqual(
-      expectedNutritionPerServing.copy().stringifyAndAppendUnits(),
+      expectedNutritionPerServing.copy().stringify(),
     );
     expect(nip.per_hundred).toEqual(
       expectedNutritionPerServing
         .copy()
         .divide(nip.serving_size)
         .times(100)
-        .stringifyAndAppendUnits(),
+        .stringify(),
     );
   });
 
@@ -1040,14 +1040,14 @@ describe('ProductService', () => {
     expect(nip.serving_unit).toEqual(p2.serving_unit);
     expect(nip.serving_per_package).toEqual(p2.serving_per_package);
     expect(nip.per_serving).toEqual(
-      expectedNutritionPerServing.copy().stringifyAndAppendUnits(),
+      expectedNutritionPerServing.copy().stringify(),
     );
     expect(nip.per_hundred).toEqual(
       expectedNutritionPerServing
         .copy()
         .divide(nip.serving_size)
         .times(100)
-        .stringifyAndAppendUnits(),
+        .stringify(),
     );
   });
 
@@ -1114,14 +1114,14 @@ describe('ProductService', () => {
     expect(nip.serving_unit).toEqual(p3.serving_unit);
     expect(nip.serving_per_package).toEqual(p3.serving_per_package);
     expect(nip.per_serving).toEqual(
-      expectedNutritionPerServing.copy().stringifyAndAppendUnits(),
+      expectedNutritionPerServing.copy().stringify(),
     );
     expect(nip.per_hundred).toEqual(
       expectedNutritionPerServing
         .copy()
         .divide(nip.serving_size)
         .times(100)
-        .stringifyAndAppendUnits(),
+        .stringify(),
     );
   });
 
@@ -1202,14 +1202,14 @@ describe('ProductService', () => {
     expect(nip.serving_unit).toEqual(p3.serving_unit);
     expect(nip.serving_per_package).toEqual(p3.serving_per_package);
     expect(nip.per_serving).toEqual(
-      expectedNutritionPerServing.copy().stringifyAndAppendUnits(),
+      expectedNutritionPerServing.copy().stringify(),
     );
     expect(nip.per_hundred).toEqual(
       expectedNutritionPerServing
         .copy()
         .divide(nip.serving_size)
         .times(100)
-        .stringifyAndAppendUnits(),
+        .stringify(),
     );
   });
 

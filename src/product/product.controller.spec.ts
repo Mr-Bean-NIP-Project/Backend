@@ -122,9 +122,9 @@ describe('ProductController', () => {
     expectedResult.serving_size = p.serving_size;
     expectedResult.serving_unit = p.serving_unit;
     expectedResult.per_hundred =
-      new Nutrition().stringifyAndAppendUnits();
+      new Nutrition().stringify();
     expectedResult.per_serving =
-      new Nutrition().stringifyAndAppendUnits();
+      new Nutrition().stringify();
     expect(nip).toEqual(expectedResult);
   });
 });
