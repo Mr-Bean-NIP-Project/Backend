@@ -148,10 +148,15 @@ export class ProductService {
       dao.product_sub_products = createdProductSubProduct;
     }
 
-    return await this.productRepository.save({
+    const updatedProduct = await this.productRepository.save({
       ...product,
       ...dao,
     });
+
+    updatedProduct.material_product.map((mp) => mp.emptyNested());
+    updatedProduct.product_sub_products.map((psp) => psp.emptyNested());
+
+    return updatedProduct;
   }
 
   async remove(id: number) {

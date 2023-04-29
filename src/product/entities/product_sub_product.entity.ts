@@ -72,7 +72,8 @@ export class ProductSubProduct {
 
   emptyNested() {
     delete this.parent; // this is repeated info
-
+    this.child.material_product = []; // nested child don't bother with material_product
+    this.child.product_sub_products = []; // dont care about grandchildren products
     return this;
   }
 }

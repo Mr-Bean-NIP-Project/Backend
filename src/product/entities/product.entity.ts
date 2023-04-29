@@ -67,10 +67,4 @@ export class Product {
     if (!this.material_product) this.material_product = [];
     return this;
   }
-
-  emptySubProductAndMaterialProduct() {
-    this.material_product = [];
-    this.product_sub_products = [];
-    return this;
-  }
 }
