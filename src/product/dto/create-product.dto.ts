@@ -6,16 +6,26 @@ import {
   IsOptional,
   IsString,
   Min,
+  ValidateNested,
 } from 'class-validator';
 import { SERVING_UNIT } from '../entities/product.entity';
+import { Type } from 'class-transformer';
 
-export interface MaterialIdAndQuantity {
+export class MaterialIdAndQuantity {
+  @IsNumber()
   material_id: number;
+
+  @IsNumber()
+  @Min(1)
   quantity: number;
 }
 
-export interface SubProductIdAndQuantity {
-  sub_product_id: number;
+export class SubProductIdAndQuantity {
+  @IsNumber()
+  product_id: number;
+
+  @IsNumber()
+  @Min(1)
   quantity: number;
 }
 
@@ -38,9 +48,13 @@ export class CreateProductDto {
 
   @IsArray()
   @IsOptional()
+  @ValidateNested({ each: true })
+  @Type(() => MaterialIdAndQuantity)
   material_id_and_quantity?: MaterialIdAndQuantity[];
 
   @IsArray()
   @IsOptional()
+  @ValidateNested({ each: true })
+  @Type(() => SubProductIdAndQuantity)
   sub_product_id_and_quantity?: SubProductIdAndQuantity[];
 }
