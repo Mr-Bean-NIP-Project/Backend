@@ -12,11 +12,13 @@ import { MaterialService } from '../material/material.service';
 import {
   CreateProductDto,
   MaterialIdAndQuantity,
+  SubProductIdAndQuantity,
 } from './dto/create-product.dto';
 import { NipDto, Nutrition, NutritionQuantity } from './dto/nip.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { MaterialProduct } from './entities/material_product.entity';
 import { Product } from './entities/product.entity';
+import { ProductSubProduct } from './entities/product_sub_product.entity';
 
 @Injectable()
 export class ProductService {
@@ -25,47 +27,20 @@ export class ProductService {
     private readonly productRepository: Repository<Product>,
     @InjectRepository(MaterialProduct)
     private readonly materialProductRepository: Repository<MaterialProduct>,
+    @InjectRepository(ProductSubProduct)
+    private readonly productSubProductRepository: Repository<ProductSubProduct>,
     private readonly materialService: MaterialService,
-  ) { }
+  ) {}
 
   async create(createProductDto: CreateProductDto) {
     await this.checkNoSameName(createProductDto);
-    const materialIds = (createProductDto.material_id_and_quantity ?? []).map(
-      (x) => x.material_id,
-    );
-    const mappedMaterials = await Promise.all(
-      materialIds.map(async (mat) => {
-        return await this.materialService.findOne(mat);
-      }),
-    );
-    const missingMaterialIds = await this.getMissingMaterialIds(
-      materialIds,
-      mappedMaterials,
-    );
-    if (missingMaterialIds.length > 0) {
-      throw new BadRequestException(
-        ERROR_MESSAGE_FORMATS.PRODUCT.MISSING_MATERIALS(missingMaterialIds),
-      );
-    }
 
-    const subProductIds = createProductDto.sub_product_ids ?? [];
-    const mappedSubProducts = await Promise.all(
-      subProductIds.map(async (mat) => {
-        return await this.findOne(mat);
-      }),
-    );
-    const missingProductIds = await this.getMissingProductIds(
-      subProductIds,
-      mappedSubProducts,
+    const mappedMaterials = await this.checkMissingMaterials(createProductDto);
+    const mappedSubProducts = await this.checkMissingSubProducts(
+      createProductDto,
     );
 
-    if (missingProductIds.length > 0) {
-      throw new BadRequestException(
-        ERROR_MESSAGE_FORMATS.PRODUCT.MISSING_PRODUCTS(missingProductIds),
-      );
-    }
-
-    const { material_id_and_quantity, sub_product_ids, ...dao } =
+    const { material_id_and_quantity, sub_product_id_and_quantity, ...dao } =
       createProductDto;
     const product = await this.productRepository.save({
       ...dao,
@@ -74,7 +49,7 @@ export class ProductService {
 
     const materialProduct = await this.getMaterialProduct(
       product,
-      createProductDto.material_id_and_quantity,
+      material_id_and_quantity,
       mappedMaterials,
     );
 
@@ -82,43 +57,39 @@ export class ProductService {
       materialProduct,
     );
 
+    const productSubProducts = await this.getProductSubProducts(
+      product,
+      sub_product_id_and_quantity,
+      mappedSubProducts,
+    );
+
+    const createdProductSubProduct =
+      await this.productSubProductRepository.save(productSubProducts);
+
     // remove nested information to compact
     return {
       ...product,
-      sub_products: mappedSubProducts.map((sp) =>
-        sp.emptySubProductAndMaterialProduct(),
-      ),
       material_product: createdMaterialProduct.map((mp) => mp.emptyNested()),
+      product_sub_products: createdProductSubProduct.map((psp) =>
+        psp.emptyNested(),
+      ),
     };
   }
 
   async findAll() {
-    return await this.productRepository.find({
-      relations: {
-        sub_products: true,
-        material_product: {
-          material: true,
-        },
-      },
-    });
+    return await findAll(this.productRepository);
   }
 
   async findOne(id: number) {
-    return await this.productRepository.findOne({
-      relations: {
-        sub_products: true,
-        material_product: {
-          material: true,
-        },
-      },
-      where: { id },
-    });
+    return await findOne(this.productRepository, id);
   }
 
   async findOneByName(name: string) {
     return await this.productRepository.findOne({
       relations: {
-        sub_products: true,
+        product_sub_products: {
+          child: true,
+        },
         material_product: {
           material: true,
         },
@@ -134,39 +105,10 @@ export class ProductService {
 
     await this.checkNoSameName(updateProductDto);
     const product = await this.findOneOrThrow(id);
-    const materialIds = (updateProductDto.material_id_and_quantity ?? []).map(
-      (x) => x.material_id,
+    const mappedMaterials = await this.checkMissingMaterials(updateProductDto);
+    const mappedSubProducts = await this.checkMissingSubProducts(
+      updateProductDto,
     );
-    const mappedMaterials = await Promise.all(
-      materialIds.map(async (mat) => {
-        return await this.materialService.findOne(mat);
-      }),
-    );
-    const missingMaterialIds = await this.getMissingMaterialIds(
-      materialIds,
-      mappedMaterials,
-    );
-    if (missingMaterialIds.length > 0) {
-      throw new BadRequestException(
-        ERROR_MESSAGE_FORMATS.PRODUCT.MISSING_MATERIALS(missingMaterialIds),
-      );
-    }
-
-    const subProductIds = updateProductDto.sub_product_ids ?? [];
-    const mappedSubProducts = await Promise.all(
-      subProductIds.map(async (mat) => {
-        return await this.findOne(mat);
-      }),
-    );
-    const missingProductIds = await this.getMissingProductIds(
-      subProductIds,
-      mappedSubProducts,
-    );
-    if (missingProductIds.length > 0) {
-      throw new BadRequestException(
-        ERROR_MESSAGE_FORMATS.PRODUCT.MISSING_PRODUCTS(missingProductIds),
-      );
-    }
 
     if (hasSubProductUpdate) {
       const cycles = await this.getCycles({
@@ -180,8 +122,11 @@ export class ProductService {
       }
     }
 
-    const { material_id_and_quantity, sub_product_ids, ...strippedDto } =
-      updateProductDto;
+    const {
+      material_id_and_quantity,
+      sub_product_id_and_quantity,
+      ...strippedDto
+    } = updateProductDto;
 
     const dao: any = { ...strippedDto };
 
@@ -189,7 +134,7 @@ export class ProductService {
       await this.removePreviousMaterialProduct(product);
       const materialProduct = await this.getMaterialProduct(
         product,
-        updateProductDto.material_id_and_quantity,
+        material_id_and_quantity,
         mappedMaterials,
       );
       const createdMaterialProduct = await this.materialProductRepository.save(
@@ -216,11 +161,11 @@ export class ProductService {
     const product = await this.findOneOrThrow(id);
     const parentProducts = await this.productRepository.find({
       relations: {
-        sub_products: true,
+        product_sub_products: true,
       },
       where: {
-        sub_products: {
-          id,
+        product_sub_products: {
+          parent_id: id,
         },
       },
     });
@@ -262,16 +207,18 @@ export class ProductService {
     dto: UpdateProductDto;
     product: Product;
   }): Promise<Edge<number>[]> {
-    if (!dto || !dto.sub_product_ids) return [];
+    if (!dto || !dto.sub_product_id_and_quantity) return [];
 
-    const subProductIds = dto.sub_product_ids;
+    const subProductIds = dto.sub_product_id_and_quantity.map(
+      (p) => p.sub_product_id,
+    );
 
     if (product && subProductIds.includes(product.id)) {
       // trivial case, if there's a cycle with itself
       return [{ from: product.id, to: product.id }];
     }
     const graph: Graph<number> = await constructGraph({
-      sub_product_ids: dto.sub_product_ids,
+      sub_product_ids: subProductIds,
       product_id: product.id,
       productRepository: this.productRepository,
       visitedProductIds: new Set<number>(),
@@ -353,6 +300,33 @@ export class ProductService {
     return material_product_daos;
   }
 
+  private async getProductSubProducts(
+    product: Product,
+    subProductIdAndQuantities: SubProductIdAndQuantity[] = [],
+    mappedSubProducts: Product[] = [],
+  ): Promise<ProductSubProduct[]> {
+    if (!product || subProductIdAndQuantities.length == 0) {
+      return Promise.resolve([]);
+    }
+
+    // then we insert here
+    const product_sub_products_daos: ProductSubProduct[] = [];
+    for (let i = 0; i < mappedSubProducts.length; i++) {
+      const sub_product = mappedSubProducts[i];
+      const quantity = subProductIdAndQuantities[i].quantity;
+      const product_sub_product_dao: ProductSubProduct =
+        new ProductSubProduct();
+      product_sub_product_dao.child = sub_product;
+      product_sub_product_dao.parent = product;
+      product_sub_product_dao.quantity = quantity;
+      product_sub_product_dao.parent_id = product.id;
+      product_sub_product_dao.child_id = sub_product.id;
+
+      product_sub_products_daos.push(product_sub_product_dao);
+    }
+    return product_sub_products_daos;
+  }
+
   private async checkNoSameName(dto: UpdateProductDto) {
     if (!dto || !dto.name) return;
     const sameNameProduct = await this.findOneByName(dto.name);
@@ -369,6 +343,54 @@ export class ProductService {
       throw new NotFoundException('Product not found!');
     }
     return product;
+  }
+
+  private async checkMissingMaterials(
+    dto: UpdateProductDto,
+  ): Promise<Material[]> {
+    const materialIds = (dto.material_id_and_quantity ?? []).map(
+      (x) => x.material_id,
+    );
+    const mappedMaterials = await Promise.all(
+      materialIds.map(async (mat) => {
+        return await this.materialService.findOne(mat);
+      }),
+    );
+    const missingMaterialIds = await this.getMissingMaterialIds(
+      materialIds,
+      mappedMaterials,
+    );
+    if (missingMaterialIds.length > 0) {
+      throw new BadRequestException(
+        ERROR_MESSAGE_FORMATS.PRODUCT.MISSING_MATERIALS(missingMaterialIds),
+      );
+    }
+
+    return mappedMaterials;
+  }
+
+  private async checkMissingSubProducts(
+    dto: UpdateProductDto,
+  ): Promise<Product[]> {
+    const subProductIds =
+      dto?.sub_product_id_and_quantity?.map((psp) => psp.sub_product_id) ?? [];
+    const mappedSubProducts = await Promise.all(
+      subProductIds.map(async (mat) => {
+        return await this.findOne(mat);
+      }),
+    );
+    const missingProductIds = await this.getMissingProductIds(
+      subProductIds,
+      mappedSubProducts,
+    );
+
+    if (missingProductIds.length > 0) {
+      throw new BadRequestException(
+        ERROR_MESSAGE_FORMATS.PRODUCT.MISSING_PRODUCTS(missingProductIds),
+      );
+    }
+
+    return mappedSubProducts;
   }
 }
 
@@ -414,28 +436,23 @@ async function calculateNutritionPerServingFromProduct({
   const materialNutrition: Nutrition =
     calculateNutritionPerServingFromMaterialProduct(product.material_product);
 
-  if (!product.sub_products || product.sub_products.length == 0) {
+  if (
+    !product.product_sub_products ||
+    product.product_sub_products.length == 0
+  ) {
     // base case, when product doesn't have subproducts, it's a leaf node
     // then we just return the material nutrition
     return materialNutrition;
   }
 
-  const subProductsRemapped: Product[] = await Promise.all(
-    product.sub_products.map(async (p) => {
-      return await productRepository.findOne({
-        relations: {
-          sub_products: true,
-          material_product: {
-            material: true,
-          },
-        },
-        where: { id: p.id },
-      });
+  const subProducts: Product[] = await Promise.all(
+    product.product_sub_products.map(async (psp) => {
+      return await findOne(productRepository, psp.child_id);
     }),
   );
   // recursive case
   const subProductNutritions: Nutrition[] = await Promise.all(
-    subProductsRemapped.map(
+    subProducts.map(
       async (product) =>
         await calculateNutritionPerServingFromProduct({
           product,
@@ -478,25 +495,16 @@ async function constructGraph({
   );
 
   const child_products: Product[] = await Promise.all(
-    filtered_sub_product_ids
-      .map(async (id) => {
-        return await productRepository.findOne({
-          relations: {
-            sub_products: true,
-            material_product: {
-              material: true,
-            },
-          },
-          where: { id },
-        });
-      })
+    filtered_sub_product_ids.map(async (id) => {
+      return await findOne(productRepository, id);
+    }),
   );
 
   const child_graphs: Graph<number>[] = await Promise.all(
     child_products.map(async (p) => {
       // recursively do it for child_products
       return await constructGraph({
-        sub_product_ids: p.sub_products.map((sp) => sp.id),
+        sub_product_ids: p.product_sub_products.map((sp) => sp.child_id),
         product_id: p.id,
         productRepository,
         visitedProductIds,
@@ -505,5 +513,37 @@ async function constructGraph({
   );
 
   return [g, ...child_graphs].reduce((acc, cur) => acc.merge(cur));
+}
+
+async function findAll(
+  productRepository: Repository<Product>,
+): Promise<Product[]> {
+  return await productRepository.find({
+    relations: {
+      product_sub_products: {
+        child: true,
+      },
+      material_product: {
+        material: true,
+      },
+    },
+  });
+}
+
+async function findOne(
+  productRepository: Repository<Product>,
+  id: number,
+): Promise<Product> {
+  return await productRepository.findOne({
+    relations: {
+      product_sub_products: {
+        child: true,
+      },
+      material_product: {
+        material: true,
+      },
+    },
+    where: { id },
+  });
 }
 // ====================================================================================================================================

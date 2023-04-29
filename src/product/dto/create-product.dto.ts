@@ -14,6 +14,11 @@ export interface MaterialIdAndQuantity {
   quantity: number;
 }
 
+export interface SubProductIdAndQuantity {
+  sub_product_id: number;
+  quantity: number;
+}
+
 export class CreateProductDto {
   @IsString()
   @IsNotEmpty()
@@ -33,9 +38,9 @@ export class CreateProductDto {
 
   @IsArray()
   @IsOptional()
-  sub_product_ids?: number[];
+  material_id_and_quantity?: MaterialIdAndQuantity[];
 
   @IsArray()
   @IsOptional()
-  material_id_and_quantity?: MaterialIdAndQuantity[];
+  sub_product_id_and_quantity?: SubProductIdAndQuantity[];
 }

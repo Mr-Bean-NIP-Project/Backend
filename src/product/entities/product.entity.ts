@@ -14,12 +14,13 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { MaterialProduct } from './material_product.entity';
+import { ProductSubProduct } from './product_sub_product.entity';
 
 export enum SERVING_UNIT {
   G = 'g',
   ML = 'ml',
   MG = 'mg',
-  KCAL = 'kcal'
+  KCAL = 'kcal',
 }
 
 @Entity()
@@ -49,12 +50,9 @@ export class Product {
   @UpdateDateColumn()
   updated_at: Date;
 
-  @ManyToMany(() => Product, (product) => product.id, {
-    onDelete: 'RESTRICT',
-    onUpdate: 'CASCADE',
-  })
-  @JoinTable({ joinColumn: { name: 'product_id_1' } })
-  sub_products: Product[];
+  @OneToMany(() => ProductSubProduct, (psp) => psp.parent)
+  @JoinTable({ joinColumn: { name: 'parent_id' } })
+  product_sub_products: ProductSubProduct[];
 
   @OneToMany(() => MaterialProduct, (mp) => mp.product)
   @JoinColumn({ name: 'product_id' })
@@ -65,14 +63,14 @@ export class Product {
   @AfterUpdate()
   initializeArrays() {
     // we wanna init arrays as empty array if nothing is tagged to it
-    if (!this.sub_products) this.sub_products = [];
+    if (!this.product_sub_products) this.product_sub_products = [];
     if (!this.material_product) this.material_product = [];
     return this;
   }
 
   emptySubProductAndMaterialProduct() {
     this.material_product = [];
-    this.sub_products = [];
+    this.product_sub_products = [];
     return this;
   }
 }
