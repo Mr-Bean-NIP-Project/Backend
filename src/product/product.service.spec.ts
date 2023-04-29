@@ -69,7 +69,7 @@ describe('ProductService', () => {
       ...dto1,
       name: 'p2',
       sub_product_id_and_quantity: [
-        { sub_product_id: createdProduct1.id, quantity: 1 },
+        { product_id: createdProduct1.id, quantity: 1 },
       ],
     };
     const createdProduct2 = await productService.create(dto2);
@@ -141,7 +141,7 @@ describe('ProductService', () => {
       ...dto1,
       name: 'p2',
       sub_product_id_and_quantity: [
-        { sub_product_id: createdProduct1.id, quantity: 1 },
+        { product_id: createdProduct1.id, quantity: 1 },
       ],
     };
     const createdProduct2 = await productService.create(dto2);
@@ -253,7 +253,7 @@ describe('ProductService', () => {
       serving_unit: SERVING_UNIT.ML,
       serving_per_package: 1,
       material_id_and_quantity: [],
-      sub_product_id_and_quantity: [{ sub_product_id: 1, quantity: 1 }],
+      sub_product_id_and_quantity: [{ product_id: 1, quantity: 1 }],
     };
     const t = async () => {
       return await productService.create(dto);
@@ -278,7 +278,7 @@ describe('ProductService', () => {
 
     const t = async () => {
       return await productService.update(p1.id, {
-        sub_product_id_and_quantity: [{ sub_product_id: p1.id, quantity: 1 }],
+        sub_product_id_and_quantity: [{ product_id: p1.id, quantity: 1 }],
       });
     };
 
@@ -347,7 +347,7 @@ describe('ProductService', () => {
 
     const updateDto: UpdateProductDto = {
       material_id_and_quantity: [],
-      sub_product_id_and_quantity: [{ sub_product_id: p1.id, quantity: 1 }],
+      sub_product_id_and_quantity: [{ product_id: p1.id, quantity: 1 }],
     };
     const p3 = await productService.update(p2.id, updateDto);
 
@@ -459,7 +459,7 @@ describe('ProductService', () => {
           quantity: 2,
         },
       ],
-      sub_product_id_and_quantity: [{ sub_product_id: p1.id, quantity: 1 }],
+      sub_product_id_and_quantity: [{ product_id: p1.id, quantity: 1 }],
     };
     const updatedProduct = await productService.update(p2.id, updateDto);
 
@@ -514,7 +514,7 @@ describe('ProductService', () => {
       serving_unit: SERVING_UNIT.ML,
       serving_per_package: 1,
       material_id_and_quantity: [],
-      sub_product_id_and_quantity: [{ sub_product_id: p1.id, quantity: 1 }],
+      sub_product_id_and_quantity: [{ product_id: p1.id, quantity: 1 }],
     };
     const p2 = await productService.create(dto2);
 
@@ -601,7 +601,7 @@ describe('ProductService', () => {
           quantity: 1,
         },
       ],
-      sub_product_id_and_quantity: [{ sub_product_id: p1.id, quantity: 1 }],
+      sub_product_id_and_quantity: [{ product_id: p1.id, quantity: 1 }],
     };
     const p2 = await productService.create(dto2);
 
@@ -639,7 +639,7 @@ describe('ProductService', () => {
       serving_unit: SERVING_UNIT.ML,
       serving_per_package: 1,
       material_id_and_quantity: [],
-      sub_product_id_and_quantity: [{ sub_product_id: p1.id, quantity: 1 }],
+      sub_product_id_and_quantity: [{ product_id: p1.id, quantity: 1 }],
     };
     const p2 = await productService.create(dto2);
 
@@ -656,7 +656,7 @@ describe('ProductService', () => {
     // changing p2 sub_product from p1.id to p3.id
     const updateDto: UpdateProductDto = {
       name: 'p4',
-      sub_product_id_and_quantity: [{ sub_product_id: p3.id, quantity: 1 }],
+      sub_product_id_and_quantity: [{ product_id: p3.id, quantity: 1 }],
     };
     const updatedProduct = await productService.update(p2.id, updateDto);
     const productInDb = await productService.findOne(updatedProduct.id);
@@ -765,7 +765,7 @@ describe('ProductService', () => {
 
     const updateDto: UpdateProductDto = {
       sub_product_id_and_quantity: [
-        { sub_product_id: missingProductId, quantity: 1 },
+        { product_id: missingProductId, quantity: 1 },
       ], // doesnt exist
     };
 
@@ -812,7 +812,7 @@ describe('ProductService', () => {
       serving_unit: SERVING_UNIT.ML,
       serving_per_package: 1,
       material_id_and_quantity: [],
-      sub_product_id_and_quantity: [{ sub_product_id: p1.id, quantity: 1 }],
+      sub_product_id_and_quantity: [{ product_id: p1.id, quantity: 1 }],
     };
     const p2 = await productService.create(dto2);
 
@@ -991,7 +991,7 @@ describe('ProductService', () => {
       serving_unit: SERVING_UNIT.G,
       serving_per_package: 1,
       material_id_and_quantity: [],
-      sub_product_id_and_quantity: [{ sub_product_id: p1.id, quantity }],
+      sub_product_id_and_quantity: [{ product_id: p1.id, quantity }],
     };
     const p2 = await productService.create(dto2);
 
@@ -1057,7 +1057,7 @@ describe('ProductService', () => {
       serving_unit: SERVING_UNIT.G,
       serving_per_package: 1,
       material_id_and_quantity: [],
-      sub_product_id_and_quantity: [{ sub_product_id: p1.id, quantity }],
+      sub_product_id_and_quantity: [{ product_id: p1.id, quantity }],
     };
     const p2 = await productService.create(dto2);
 
@@ -1129,8 +1129,8 @@ describe('ProductService', () => {
       serving_per_package: 1,
       material_id_and_quantity: [],
       sub_product_id_and_quantity: [
-        { sub_product_id: p1.id, quantity },
-        { sub_product_id: p2.id, quantity },
+        { product_id: p1.id, quantity },
+        { product_id: p2.id, quantity },
       ],
     };
     const p3 = await productService.create(dto3);
@@ -1217,8 +1217,8 @@ describe('ProductService', () => {
       serving_per_package: 1,
       material_id_and_quantity: [],
       sub_product_id_and_quantity: [
-        { sub_product_id: p1.id, quantity },
-        { sub_product_id: p2.id, quantity },
+        { product_id: p1.id, quantity },
+        { product_id: p2.id, quantity },
       ],
     };
     const p3 = await productService.create(dto3);
@@ -1262,7 +1262,7 @@ describe('ProductService', () => {
       serving_unit: SERVING_UNIT.G,
       serving_per_package: 1,
       material_id_and_quantity: [],
-      sub_product_id_and_quantity: [{ sub_product_id: p1.id, quantity: 1 }],
+      sub_product_id_and_quantity: [{ product_id: p1.id, quantity: 1 }],
     };
     const p2 = await productService.create(dto2);
 
@@ -1272,7 +1272,7 @@ describe('ProductService', () => {
       serving_unit: SERVING_UNIT.G,
       serving_per_package: 1,
       material_id_and_quantity: [],
-      sub_product_id_and_quantity: [{ sub_product_id: p2.id, quantity: 1 }],
+      sub_product_id_and_quantity: [{ product_id: p2.id, quantity: 1 }],
     };
     const p3 = await productService.create(dto3);
 
@@ -1282,12 +1282,12 @@ describe('ProductService', () => {
       serving_unit: SERVING_UNIT.G,
       serving_per_package: 1,
       material_id_and_quantity: [],
-      sub_product_id_and_quantity: [{ sub_product_id: p3.id, quantity: 1 }],
+      sub_product_id_and_quantity: [{ product_id: p3.id, quantity: 1 }],
     };
     const p4 = await productService.create(dto4);
 
     const updateDto: UpdateProductDto = {
-      sub_product_id_and_quantity: [{ sub_product_id: p4.id, quantity: 1 }],
+      sub_product_id_and_quantity: [{ product_id: p4.id, quantity: 1 }],
     };
 
     // now we try to update p1 with p4 as sub product aka 1 => 4

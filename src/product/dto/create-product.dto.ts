@@ -15,7 +15,7 @@ export interface MaterialIdAndQuantity {
 }
 
 export interface SubProductIdAndQuantity {
-  sub_product_id: number;
+  product_id: number;
   quantity: number;
 }
 

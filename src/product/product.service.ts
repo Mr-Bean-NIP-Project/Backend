@@ -212,7 +212,7 @@ export class ProductService {
     if (!dto || !dto.sub_product_id_and_quantity) return [];
 
     const subProductIds = dto.sub_product_id_and_quantity.map(
-      (p) => p.sub_product_id,
+      (p) => p.product_id,
     );
 
     if (product && subProductIds.includes(product.id)) {
@@ -391,7 +391,7 @@ export class ProductService {
     dto: UpdateProductDto,
   ): Promise<Product[]> {
     const subProductIds =
-      dto?.sub_product_id_and_quantity?.map((psp) => psp.sub_product_id) ?? [];
+      dto?.sub_product_id_and_quantity?.map((psp) => psp.product_id) ?? [];
     const mappedSubProducts = await Promise.all(
       subProductIds.map(async (mat) => {
         return await this.findOne(mat);
