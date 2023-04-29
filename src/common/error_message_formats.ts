@@ -11,10 +11,6 @@ const ERROR_MESSAGE_FORMATS = {
       `Cyclic Product not allowed! Cycle(s) detected between product ids: ${cycles
         .map((c) => `(From: ${c.from}, To: ${c.to})`)
         .join(', ')}`,
-    HAS_PARENT_REFERENCE: (parentIds: number[]) =>
-      `Please remove products that references this with ID(s): ${parentIds.join(
-        ', ',
-      )}`,
     SAME_NAME: (id: string | number) =>
       `Product with id: ${id} has the same name!`,
   },

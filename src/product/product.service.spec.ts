@@ -795,37 +795,6 @@ describe('ProductService', () => {
     await expect(t).rejects.toThrowError(NotFoundException);
   });
 
-  it("should fail to delete a product is part of another product's subproduct (fail cos have parents)", async () => {
-    const dto1: CreateProductDto = {
-      name: 'p1',
-      serving_size: 10,
-      serving_unit: SERVING_UNIT.ML,
-      serving_per_package: 1,
-      material_id_and_quantity: [],
-      sub_product_id_and_quantity: [],
-    };
-    const p1 = await productService.create(dto1);
-
-    const dto2: CreateProductDto = {
-      name: 'p2',
-      serving_size: 10,
-      serving_unit: SERVING_UNIT.ML,
-      serving_per_package: 1,
-      material_id_and_quantity: [],
-      sub_product_id_and_quantity: [{ product_id: p1.id, quantity: 1 }],
-    };
-    const p2 = await productService.create(dto2);
-
-    const t = async () => {
-      return await productService.remove(p1.id);
-    };
-
-    await expect(t).rejects.toThrowError(BadRequestException);
-    await expect(t).rejects.toThrowError(
-      ERROR_MESSAGE_FORMATS.PRODUCT.HAS_PARENT_REFERENCE([p2.id]),
-    );
-  });
-
   it('should successfully remove a product', async () => {
     const dto1: CreateProductDto = {
       name: 'p1',

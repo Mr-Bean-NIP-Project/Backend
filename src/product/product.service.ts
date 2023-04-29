@@ -160,25 +160,7 @@ export class ProductService {
   }
 
   async remove(id: number) {
-    const product = await this.findOneOrThrow(id);
-    const parentProducts = await this.productRepository.find({
-      relations: {
-        product_sub_products: true,
-      },
-      where: {
-        product_sub_products: {
-          child_id: id,
-        },
-      },
-    });
-    if (parentProducts.length > 0) {
-      throw new BadRequestException(
-        ERROR_MESSAGE_FORMATS.PRODUCT.HAS_PARENT_REFERENCE(
-          parentProducts.map((p) => p.id),
-        ),
-      );
-    }
-    return await this.productRepository.remove(product);
+    return await this.productRepository.remove(await this.findOneOrThrow(id));
   }
 
   async getNip(id: number): Promise<NipDto> {
