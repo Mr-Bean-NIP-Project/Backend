@@ -5,9 +5,13 @@ import { ProductController } from './product.controller';
 import { ProductService } from './product.service';
 import { MaterialModule } from '../material/material.module';
 import { MaterialProduct } from './entities/material_product.entity';
+import { ProductSubProduct } from './entities/product_sub_product.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Product, MaterialProduct]), MaterialModule],
+  imports: [
+    TypeOrmModule.forFeature([Product, MaterialProduct, ProductSubProduct]),
+    MaterialModule,
+  ],
   controllers: [ProductController],
   providers: [ProductService],
 })
