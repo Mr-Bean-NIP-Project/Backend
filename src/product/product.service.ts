@@ -85,17 +85,7 @@ export class ProductService {
   }
 
   async findOneByName(name: string) {
-    return await this.productRepository.findOne({
-      relations: {
-        product_sub_products: {
-          child: true,
-        },
-        material_product: {
-          material: true,
-        },
-      },
-      where: { name },
-    });
+    return await findOneByName(this.productRepository, name);
   }
 
   async update(id: number, updateProductDto: UpdateProductDto) {
@@ -544,6 +534,23 @@ async function findOne(
       },
     },
     where: { id },
+  });
+}
+
+async function findOneByName(
+  productRepository: Repository<Product>,
+  name: string,
+): Promise<Product> {
+  return await productRepository.findOne({
+    relations: {
+      product_sub_products: {
+        child: true,
+      },
+      material_product: {
+        material: true,
+      },
+    },
+    where: { name },
   });
 }
 // ====================================================================================================================================
