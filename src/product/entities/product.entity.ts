@@ -27,7 +27,7 @@ export enum SERVING_UNIT {
 @Unique(['name'])
 export class Product {
   @PrimaryGeneratedColumn()
-  id: number;
+  id?: number;
 
   @Column()
   name: string;
@@ -45,18 +45,18 @@ export class Product {
   serving_per_package: number;
 
   @CreateDateColumn()
-  created_at: Date;
+  created_at?: Date;
 
   @UpdateDateColumn()
-  updated_at: Date;
+  updated_at?: Date;
 
   @OneToMany(() => ProductSubProduct, (psp) => psp.parent)
   @JoinTable({ joinColumn: { name: 'parent_id' } })
-  product_sub_products: ProductSubProduct[];
+  product_sub_products?: ProductSubProduct[];
 
   @OneToMany(() => MaterialProduct, (mp) => mp.product)
   @JoinColumn({ name: 'product_id' })
-  material_product: MaterialProduct[];
+  material_product?: MaterialProduct[];
 
   @AfterLoad()
   @AfterInsert()

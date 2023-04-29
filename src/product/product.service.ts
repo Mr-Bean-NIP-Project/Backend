@@ -89,7 +89,7 @@ export class ProductService {
   }
 
   async update(id: number, updateProductDto: UpdateProductDto) {
-    const hasSubProductUpdate: boolean = 'sub_product_ids' in updateProductDto;
+    const hasSubProductUpdate: boolean = 'sub_product_id_and_quantity' in updateProductDto;
     const hasMaterialUpdate: boolean =
       'material_id_and_quantity' in updateProductDto;
 
@@ -118,7 +118,10 @@ export class ProductService {
       ...strippedDto
     } = updateProductDto;
 
-    const dao: any = { ...strippedDto };
+    const dao: Product = new Product();
+    for (const field in strippedDto) {
+      dao[field] = strippedDto[field];
+    }
 
     if (hasMaterialUpdate) {
       await this.removePreviousMaterialProduct(product);
@@ -136,15 +139,21 @@ export class ProductService {
     }
 
     if (hasSubProductUpdate) {
-      dao.sub_products = mappedSubProducts;
+      await this.removePreviousProductSubProduct(product);
+      const productSubProducts = await this.getProductSubProducts(
+        product,
+        sub_product_id_and_quantity,
+        mappedSubProducts,
+      );
+      const createdProductSubProduct =
+        await this.productSubProductRepository.save(productSubProducts);
+      dao.product_sub_products = createdProductSubProduct;
     }
 
-    const newProduct: Product = await this.productRepository.save({
+    return await this.productRepository.save({
       ...product,
       ...dao,
     });
-
-    return newProduct;
   }
 
   async remove(id: number) {
@@ -155,7 +164,7 @@ export class ProductService {
       },
       where: {
         product_sub_products: {
-          parent_id: id,
+          child_id: id,
         },
       },
     });
@@ -261,6 +270,22 @@ export class ProductService {
 
     return await this.materialProductRepository.remove(
       previousMaterialProducts,
+    );
+  }
+
+  private async removePreviousProductSubProduct(
+    product: Product,
+  ): Promise<ProductSubProduct[]> {
+    if (!product) return Promise.resolve([]);
+    const previousProductSubProducts =
+      await this.productSubProductRepository.find({
+        where: {
+          parent_id: product.id,
+        },
+      });
+
+    return await this.productSubProductRepository.remove(
+      previousProductSubProducts,
     );
   }
 
