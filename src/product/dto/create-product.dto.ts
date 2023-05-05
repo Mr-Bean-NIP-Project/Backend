@@ -16,7 +16,7 @@ export class MaterialIdAndQuantity {
   material_id: number;
 
   @IsNumber()
-  @Min(1)
+  @Min(0)
   quantity: number;
 }
 
@@ -25,7 +25,7 @@ export class SubProductIdAndQuantity {
   product_id: number;
 
   @IsNumber()
-  @Min(1)
+  @Min(0)
   quantity: number;
 }
 
@@ -35,7 +35,7 @@ export class CreateProductDto {
   name: string;
 
   @IsNumber()
-  @Min(1)
+  @Min(0)
   serving_size: number;
 
   @IsEnum(SERVING_UNIT)
