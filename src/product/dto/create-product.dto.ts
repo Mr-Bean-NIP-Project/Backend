@@ -35,7 +35,7 @@ export class CreateProductDto {
   name: string;
 
   @IsNumber()
-  @Min(0)
+  @Min(1)
   serving_size: number;
 
   @IsEnum(SERVING_UNIT)
