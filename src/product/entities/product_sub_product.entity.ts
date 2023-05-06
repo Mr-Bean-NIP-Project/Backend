@@ -28,7 +28,7 @@ export class ProductSubProduct {
   @Column()
   child_id?: number;
 
-  @Column()
+  @Column({ type: 'decimal', precision: 10, scale: 2 })
   quantity: number;
 
   @CreateDateColumn()

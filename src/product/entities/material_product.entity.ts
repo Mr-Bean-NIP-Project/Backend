@@ -29,7 +29,7 @@ export class MaterialProduct {
   @Column()
   product_id?: number;
 
-  @Column()
+  @Column({ type: 'decimal', precision: 10, scale: 2 })
   material_quantity: number;
 
   @CreateDateColumn()

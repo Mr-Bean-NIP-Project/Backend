@@ -1313,4 +1313,183 @@ describe('ProductService', () => {
     expect(p2.created_at).not.toEqual(p2.updated_at);
     expect(productInDb.created_at).not.toEqual(productInDb.updated_at);
   });
+
+  it('should update successfully with decimals [product only]', async () => {
+    const dto1: CreateProductDto = {
+      name: 'p1',
+      serving_size: 10,
+      serving_unit: SERVING_UNIT.ML,
+      serving_per_package: 1,
+      material_id_and_quantity: [],
+      sub_product_id_and_quantity: [],
+    };
+    const p1 = await productService.create(dto1);
+
+    const dto2: UpdateProductDto = {
+      name: 'p2',
+      serving_size: 10.25,
+      material_id_and_quantity: [],
+      sub_product_id_and_quantity: [],
+    };
+    const p2 = await productService.update(p1.id, dto2);
+
+    const productInDb = await productService.findOne(p2.id);
+    expect(p2).toEqual(productInDb);
+    expect(p1.product_sub_products).toHaveLength(
+      dto1.sub_product_id_and_quantity.length,
+    );
+    expect(p1.material_product).toHaveLength(
+      dto1.material_id_and_quantity.length,
+    );
+    expect(p2.product_sub_products).toHaveLength(
+      dto2.sub_product_id_and_quantity.length,
+    );
+    expect(p2.material_product).toHaveLength(
+      dto2.material_id_and_quantity.length,
+    );
+  });
+
+  it('should update successfully with decimals [sub_products only]', async () => {
+    const dto1: CreateProductDto = {
+      name: 'p1',
+      serving_size: 10,
+      serving_unit: SERVING_UNIT.ML,
+      serving_per_package: 1,
+      material_id_and_quantity: [],
+      sub_product_id_and_quantity: [],
+    };
+    const p1 = await productService.create(dto1);
+
+    const dto2: CreateProductDto = {
+      name: 'p2',
+      serving_size: 10,
+      serving_unit: SERVING_UNIT.ML,
+      serving_per_package: 1,
+      material_id_and_quantity: [],
+      sub_product_id_and_quantity: [],
+    };
+    const p2 = await productService.create(dto2);
+
+    const updateDto: UpdateProductDto = {
+      sub_product_id_and_quantity: [
+        {
+          product_id: p2.id,
+          quantity: 0.25,
+        },
+      ],
+    };
+    const p3 = await productService.update(p1.id, updateDto);
+
+    const productInDb = await productService.findOne(p1.id);
+    expect(p3).toEqual(productInDb);
+    expect(p1.product_sub_products).toHaveLength(
+      dto1.sub_product_id_and_quantity.length,
+    );
+    expect(p1.material_product).toHaveLength(
+      dto1.material_id_and_quantity.length,
+    );
+    expect(p2.product_sub_products).toHaveLength(
+      dto2.sub_product_id_and_quantity.length,
+    );
+    expect(p2.material_product).toHaveLength(
+      dto2.material_id_and_quantity.length,
+    );
+  });
+
+  it('should update successfully with decimals [material only]', async () => {
+    const sup = await supplierService.create({ name: 'NTUC' });
+    const mat = await materialService.create({
+      supplier_id: sup.id,
+      name: 'mat',
+    });
+    const dto1: CreateProductDto = {
+      name: 'p1',
+      serving_size: 10,
+      serving_unit: SERVING_UNIT.ML,
+      serving_per_package: 1,
+      material_id_and_quantity: [],
+      sub_product_id_and_quantity: [],
+    };
+    const p1 = await productService.create(dto1);
+
+    const dto2: UpdateProductDto = {
+      material_id_and_quantity: [
+        {
+          material_id: mat.id,
+          quantity: 0.25,
+        },
+      ],
+    };
+    const p2 = await productService.update(p1.id, dto2);
+
+    const productInDb = await productService.findOne(p2.id);
+    expect(p2).toEqual(productInDb);
+    expect(p1.product_sub_products).toHaveLength(
+      dto1.sub_product_id_and_quantity.length,
+    );
+    expect(p1.material_product).toHaveLength(
+      dto1.material_id_and_quantity.length,
+    );
+    expect(p2.material_product).toHaveLength(
+      dto2.material_id_and_quantity.length,
+    );
+  });
+
+  it('should update successfully with decimals [material and sub_products]', async () => {
+    const sup = await supplierService.create({ name: 'NTUC' });
+    const mat = await materialService.create({
+      supplier_id: sup.id,
+      name: 'mat',
+    });
+    const dto1: CreateProductDto = {
+      name: 'p1',
+      serving_size: 10,
+      serving_unit: SERVING_UNIT.ML,
+      serving_per_package: 1,
+      material_id_and_quantity: [],
+      sub_product_id_and_quantity: [],
+    };
+    const p1 = await productService.create(dto1);
+
+    const dto2: CreateProductDto = {
+      name: 'p2',
+      serving_size: 10,
+      serving_unit: SERVING_UNIT.ML,
+      serving_per_package: 1,
+      material_id_and_quantity: [],
+      sub_product_id_and_quantity: [],
+    };
+    const p2 = await productService.create(dto2);
+
+    const updateDto: UpdateProductDto = {
+      material_id_and_quantity: [
+        {
+          material_id: mat.id,
+          quantity: 0.25,
+        },
+      ],
+      sub_product_id_and_quantity: [
+        {
+          product_id: p2.id,
+          quantity: 0.25,
+        },
+      ],
+    };
+    const p3 = await productService.update(p1.id, updateDto);
+
+    const productInDb = await productService.findOne(p1.id);
+    expect(p3).toEqual(productInDb);
+    expect(p1.product_sub_products).toHaveLength(
+      dto1.sub_product_id_and_quantity.length,
+    );
+    expect(p1.material_product).toHaveLength(
+      dto1.material_id_and_quantity.length,
+    );
+    expect(p2.product_sub_products).toHaveLength(
+      dto2.sub_product_id_and_quantity.length,
+    );
+    expect(p2.material_product).toHaveLength(
+      dto2.material_id_and_quantity.length,
+    );
+  });
 });
