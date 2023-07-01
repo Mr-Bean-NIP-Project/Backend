@@ -30,9 +30,7 @@
 
 ```bash
 $ npm install
-```
 
-```bash
 # create tables
 npm run migration:run
 ```
